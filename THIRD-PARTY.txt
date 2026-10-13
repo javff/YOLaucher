@@ -1,0 +1,12 @@
+Third-party components included in this package
+===============================================
+
+python\        Python 3.12.10 embeddable package (python.org). PSF License: python\LICENSE.txt.
+node\          Node.js 22 LTS (nodejs.org). MIT License and bundled notices: node\LICENSE.
+engine\        duelcore.mjs: the duel engine of this project bundled with ocgcore-wasm 0.1.2 (MIT), which embeds the
+               EDOPro/ProjectIgnis ocgcore compiled to WebAssembly (AGPL-3.0).
+vendor\        CardScripts (ProjectIgnis, AGPL-3.0: vendor\CardScripts\COPYING), cards.cdb (BabelCDB, ProjectIgnis) and
+               strings.conf (ProjectIgnis). Unmodified copies.
+
+No files from the original game are included. The launcher reads the data it needs from the player's own copy of
+the game (yo2.exe Ver.080912) when a server is started.
