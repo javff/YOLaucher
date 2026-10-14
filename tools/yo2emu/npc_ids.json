@@ -1,0 +1,831 @@
+[
+ {
+  "id": 1,
+  "name": "Duelista timido",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 2,
+  "name": "Chica alegre",
+  "sex": "F",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 3,
+  "name": "Chico ardiente",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 4,
+  "name": "Guardian",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 5,
+  "name": "Pandillera",
+  "sex": "F",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 6,
+  "name": "Admirador",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 7,
+  "name": "Maton",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 8,
+  "name": "Vidente",
+  "sex": "?",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 9,
+  "name": "Analista",
+  "sex": "F",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 10,
+  "name": "Solitario",
+  "sex": "?",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 11,
+  "name": "YNC4128",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 12,
+  "name": "Chica segura",
+  "sex": "F",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 13,
+  "name": "Monje",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 14,
+  "name": "Dama",
+  "sex": "F",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 15,
+  "name": "Cientifico",
+  "sex": "?",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 16,
+  "name": "Samurai errante",
+  "sex": "F",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 17,
+  "name": "Robert",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 18,
+  "name": "Ashley",
+  "sex": "F",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 19,
+  "name": "Maestro Si",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 20,
+  "name": "Perezoso",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 21,
+  "name": "Chico rana",
+  "sex": "?",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 22,
+  "name": "Fogoso",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 23,
+  "name": "Viejo duelista",
+  "sex": "?",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 24,
+  "name": "Duelista amable",
+  "sex": "?",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 25,
+  "name": "Introvertido",
+  "sex": "?",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 26,
+  "name": "NiaNia",
+  "sex": "F",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 27,
+  "name": "Hey Hey",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 28,
+  "name": "Taciturno",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 29,
+  "name": "Socio del club",
+  "sex": "?",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 30,
+  "name": "Nino de mama",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 31,
+  "name": "Fan de Alexis",
+  "sex": "F",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 32,
+  "name": "Chica altiva",
+  "sex": "F",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 33,
+  "name": "Chica nerviosa",
+  "sex": "F",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 34,
+  "name": "Seductora",
+  "sex": "F",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 35,
+  "name": "Fan de OVNIS",
+  "sex": "?",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 36,
+  "name": "Duelista cortes",
+  "sex": "?",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 37,
+  "name": "Silencioso",
+  "sex": "?",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 38,
+  "name": "Futuro Kaiser",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 39,
+  "name": "Chica Slifer",
+  "sex": "F",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 40,
+  "name": "Estratega",
+  "sex": "?",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 41,
+  "name": "Chica suertuda",
+  "sex": "F",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 42,
+  "name": "William",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 43,
+  "name": "Abigail",
+  "sex": "F",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 44,
+  "name": "Imitador",
+  "sex": "?",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 45,
+  "name": "Gloton",
+  "sex": "?",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 46,
+  "name": "Chico reptil",
+  "sex": "?",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 47,
+  "name": "Supersticioso",
+  "sex": "?",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 48,
+  "name": "Espadachin",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 49,
+  "name": "Mentor",
+  "sex": "?",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 50,
+  "name": "Veterano burlon",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 51,
+  "name": "Yami Yugi",
+  "portrait": "d01",
+  "chibi": "d01",
+  "tier": 0,
+  "name_text_id": 8001,
+  "fixed_look": true
+ },
+ {
+  "id": 52,
+  "name": "Yami Yugi",
+  "portrait": "d01",
+  "chibi": "d01",
+  "tier": 1,
+  "name_text_id": 8001,
+  "fixed_look": true
+ },
+ {
+  "id": 53,
+  "name": "Yami Yugi",
+  "portrait": "d01",
+  "chibi": "d01",
+  "tier": 2,
+  "name_text_id": 8001,
+  "fixed_look": true
+ },
+ {
+  "id": 54,
+  "name": "Seto Kaiba",
+  "portrait": "d05",
+  "chibi": "d04",
+  "tier": 0,
+  "name_text_id": 8005,
+  "fixed_look": true
+ },
+ {
+  "id": 55,
+  "name": "Seto Kaiba",
+  "portrait": "d05",
+  "chibi": "d04",
+  "tier": 1,
+  "name_text_id": 8005,
+  "fixed_look": true
+ },
+ {
+  "id": 56,
+  "name": "Seto Kaiba",
+  "portrait": "d05",
+  "chibi": "d04",
+  "tier": 2,
+  "name_text_id": 8005,
+  "fixed_look": true
+ },
+ {
+  "id": 57,
+  "name": "Tea Gardner",
+  "portrait": "d06",
+  "chibi": "d06",
+  "tier": 0,
+  "name_text_id": 8007,
+  "fixed_look": true
+ },
+ {
+  "id": 58,
+  "name": "Tea Gardner",
+  "portrait": "d06",
+  "chibi": "d06",
+  "tier": 1,
+  "name_text_id": 8007,
+  "fixed_look": true
+ },
+ {
+  "id": 59,
+  "name": "Tea Gardner",
+  "portrait": "d06",
+  "chibi": "d06",
+  "tier": 2,
+  "name_text_id": 8007,
+  "fixed_look": true
+ },
+ {
+  "id": 60,
+  "name": "Jaden Yuki",
+  "portrait": "a01",
+  "chibi": "a01",
+  "tier": 0,
+  "name_text_id": 8050,
+  "fixed_look": true
+ },
+ {
+  "id": 61,
+  "name": "Jaden Yuki",
+  "portrait": "a01",
+  "chibi": "a01",
+  "tier": 1,
+  "name_text_id": 8050,
+  "fixed_look": true
+ },
+ {
+  "id": 62,
+  "name": "Jaden Yuki",
+  "portrait": "a01",
+  "chibi": "a01",
+  "tier": 2,
+  "name_text_id": 8050,
+  "fixed_look": true
+ },
+ {
+  "id": 63,
+  "name": "Chazz Princeton",
+  "portrait": "a04",
+  "chibi": "a04",
+  "tier": 0,
+  "name_text_id": 8052,
+  "fixed_look": true
+ },
+ {
+  "id": 64,
+  "name": "Chazz Princeton",
+  "portrait": "a04",
+  "chibi": "a04",
+  "tier": 1,
+  "name_text_id": 8052,
+  "fixed_look": true
+ },
+ {
+  "id": 65,
+  "name": "Chazz Princeton",
+  "portrait": "a04",
+  "chibi": "a04",
+  "tier": 2,
+  "name_text_id": 8052,
+  "fixed_look": true
+ },
+ {
+  "id": 66,
+  "name": "Alexis Rhodes",
+  "portrait": "a03",
+  "chibi": "a03",
+  "tier": 0,
+  "name_text_id": 8053,
+  "fixed_look": true
+ },
+ {
+  "id": 67,
+  "name": "Alexis Rhodes",
+  "portrait": "a03",
+  "chibi": "a03",
+  "tier": 1,
+  "name_text_id": 8053,
+  "fixed_look": true
+ },
+ {
+  "id": 68,
+  "name": "Alexis Rhodes",
+  "portrait": "a03",
+  "chibi": "a03",
+  "tier": 2,
+  "name_text_id": 8053,
+  "fixed_look": true
+ },
+ {
+  "id": 69,
+  "name": "Joey Wheeler",
+  "portrait": "d07",
+  "chibi": "d07",
+  "tier": 0,
+  "name_text_id": 8004,
+  "fixed_look": true
+ },
+ {
+  "id": 70,
+  "name": "Joey Wheeler",
+  "portrait": "d07",
+  "chibi": "d07",
+  "tier": 1,
+  "name_text_id": 8004,
+  "fixed_look": true
+ },
+ {
+  "id": 71,
+  "name": "Joey Wheeler",
+  "portrait": "d07",
+  "chibi": "d07",
+  "tier": 2,
+  "name_text_id": 8004,
+  "fixed_look": true
+ },
+ {
+  "id": 72,
+  "name": "Jesse Andersen",
+  "portrait": "a05",
+  "chibi": "a05",
+  "tier": 0,
+  "name_text_id": 8071,
+  "fixed_look": true
+ },
+ {
+  "id": 73,
+  "name": "Jesse Andersen",
+  "portrait": "a05",
+  "chibi": "a05",
+  "tier": 1,
+  "name_text_id": 8071,
+  "fixed_look": true
+ },
+ {
+  "id": 74,
+  "name": "Jesse Andersen",
+  "portrait": "a05",
+  "chibi": "a05",
+  "tier": 2,
+  "name_text_id": 8071,
+  "fixed_look": true
+ },
+ {
+  "id": 75,
+  "name": "Yami Marik",
+  "portrait": "d08",
+  "chibi": "d08",
+  "tier": 0,
+  "name_text_id": 8017,
+  "fixed_look": true
+ },
+ {
+  "id": 76,
+  "name": "Yami Marik",
+  "portrait": "d08",
+  "chibi": "d08",
+  "tier": 1,
+  "name_text_id": 8017,
+  "fixed_look": true
+ },
+ {
+  "id": 77,
+  "name": "Yami Marik",
+  "portrait": "d08",
+  "chibi": "d08",
+  "tier": 2,
+  "name_text_id": 8017,
+  "fixed_look": true
+ },
+ {
+  "id": 78,
+  "name": "Hell Kaiser",
+  "portrait": "a06",
+  "chibi": "a06",
+  "tier": 0,
+  "name_text_id": 8075,
+  "fixed_look": true
+ },
+ {
+  "id": 79,
+  "name": "Hell Kaiser",
+  "portrait": "a06",
+  "chibi": "a06",
+  "tier": 1,
+  "name_text_id": 8075,
+  "fixed_look": true
+ },
+ {
+  "id": 80,
+  "name": "Hell Kaiser",
+  "portrait": "a06",
+  "chibi": "a06",
+  "tier": 2,
+  "name_text_id": 8075,
+  "fixed_look": true
+ },
+ {
+  "id": 81,
+  "name": "Yami Bakura",
+  "portrait": "d09",
+  "chibi": "d09",
+  "tier": 0,
+  "name_text_id": 8011,
+  "fixed_look": true
+ },
+ {
+  "id": 82,
+  "name": "Yami Bakura",
+  "portrait": "d09",
+  "chibi": "d09",
+  "tier": 1,
+  "name_text_id": 8011,
+  "fixed_look": true
+ },
+ {
+  "id": 83,
+  "name": "Yami Bakura",
+  "portrait": "d09",
+  "chibi": "d09",
+  "tier": 2,
+  "name_text_id": 8011,
+  "fixed_look": true
+ },
+ {
+  "id": 84,
+  "name": "Aster Phoenix",
+  "portrait": "a07",
+  "chibi": "a07",
+  "tier": 0,
+  "name_text_id": 8062,
+  "fixed_look": true
+ },
+ {
+  "id": 85,
+  "name": "Aster Phoenix",
+  "portrait": "a07",
+  "chibi": "a07",
+  "tier": 1,
+  "name_text_id": 8062,
+  "fixed_look": true
+ },
+ {
+  "id": 86,
+  "name": "Aster Phoenix",
+  "portrait": "a07",
+  "chibi": "a07",
+  "tier": 2,
+  "name_text_id": 8062,
+  "fixed_look": true
+ },
+ {
+  "id": 87,
+  "name": "Mai Valentine",
+  "portrait": "d10",
+  "chibi": "d10",
+  "tier": 0,
+  "name_text_id": 8020,
+  "fixed_look": true
+ },
+ {
+  "id": 88,
+  "name": "Mai Valentine",
+  "portrait": "d10",
+  "chibi": "d10",
+  "tier": 1,
+  "name_text_id": 8020,
+  "fixed_look": true
+ },
+ {
+  "id": 89,
+  "name": "Mai Valentine",
+  "portrait": "d10",
+  "chibi": "d10",
+  "tier": 2,
+  "name_text_id": 8020,
+  "fixed_look": true
+ },
+ {
+  "id": 90,
+  "name": "Jim Cook",
+  "portrait": "a09",
+  "chibi": "a08",
+  "tier": 0,
+  "name_text_id": 8073,
+  "fixed_look": true
+ },
+ {
+  "id": 91,
+  "name": "Jim Cook",
+  "portrait": "a09",
+  "chibi": "a08",
+  "tier": 1,
+  "name_text_id": 8073,
+  "fixed_look": true
+ },
+ {
+  "id": 92,
+  "name": "Jim Cook",
+  "portrait": "a09",
+  "chibi": "a08",
+  "tier": 2,
+  "name_text_id": 8073,
+  "fixed_look": true
+ },
+ {
+  "id": 93,
+  "name": "Jaden Yuki",
+  "portrait": "a08",
+  "chibi": "a01",
+  "tier": 0,
+  "name_text_id": 8050,
+  "fixed_look": true
+ },
+ {
+  "id": 94,
+  "name": "Jaden Yuki",
+  "portrait": "a08",
+  "chibi": "a01",
+  "tier": 1,
+  "name_text_id": 8050,
+  "fixed_look": true
+ },
+ {
+  "id": 95,
+  "name": "Jaden Yuki",
+  "portrait": "a08",
+  "chibi": null,
+  "tier": 2,
+  "name_text_id": 8050,
+  "fixed_look": false
+ },
+ {
+  "id": 96,
+  "name": "Ghoul showman",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 97,
+  "name": "Ghoul loco",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ },
+ {
+  "id": 98,
+  "name": "Ghoul novato",
+  "sex": "M",
+  "portrait": null,
+  "chibi": null,
+  "fixed_look": false
+ }
+]

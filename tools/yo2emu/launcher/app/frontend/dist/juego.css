@@ -1,0 +1,265 @@
+/* =====================================================================================================================
+   Tema «juego»: los gráficos reales del cliente de 2008 (img/game/, recortados de merge.dat por ../../graficos.py; el dueño
+   aprobó incrustarlos). Todo cuelga de html.gfx: si una imagen no carga, app.js quita la clase y queda el dibujo CSS de app.css.
+   Marcos y botones van con border-image (9 trozos) a 1:1: las capsulas ya vienen reescaladas a su altura, sin escalar aqui.
+   ===================================================================================================================== */
+html.gfx{--ol:#0a2f8f;--olg:#8a4a00;--olr:#7a0c14}
+/* contorno de los textos de botón, como en el juego: letras blancas con borde oscuro */
+html.gfx .b,html.gfx .cinta .tx,html.gfx .panel>h3,html.gfx .caja>h2,html.gfx .det .hd,html.gfx .title b{
+  text-shadow:-1px -1px 0 var(--ol),1px -1px 0 var(--ol),-1px 1px 0 var(--ol),1px 1px 0 var(--ol),0 2px 0 var(--ol)}
+
+/* ---- ventana, fondo y barra de título */
+html.gfx .win{border-color:#1b5fc2;
+  background:radial-gradient(70% 60% at 55% 50%,rgba(255,255,255,.5),rgba(255,255,255,0) 75%),
+    linear-gradient(180deg,rgba(231,246,255,.8),rgba(214,238,255,.82)),url(img/game/fondo.jpg) center/100% 100%,#cfe9ff}
+html.gfx .win::before{content:"";position:absolute;left:0;right:0;top:44px;bottom:0;pointer-events:none;z-index:0;
+  background:url(img/game/emblema.png) 56% 64%/360px no-repeat;opacity:.34}
+html.gfx .fondo{display:none}
+html.gfx .title{background:url(img/game/titulo.png) repeat-x 0 0/16px 44px #2a90f5;border-bottom:0;box-shadow:none}
+html.gfx .title .wb{width:50px;height:44px;border:solid transparent;border-width:12px 12px 10px;border-image:url(img/game/cubo_n.png) 12 12 10 fill/12px 12px 10px;background:none;filter:none}
+html.gfx .title .wb svg{filter:drop-shadow(0 1px 0 rgba(6,50,130,.75))}
+html.gfx .title .wb{transition:filter .12s}
+html.gfx .title .wb svg{transition:filter .12s,transform .06s}
+/* la barra lateral por encima del contenido: con el brillo al pasar el raton (filter) cada icono crea su propio
+   contexto de apilamiento y su .tip quedaba DEBAJO del panel de la derecha */
+nav{position:relative;z-index:5}
+/* cubo_h.png del juego es identico a cubo_n.png: el resalte va por CSS (brillo + contorno blanco por dentro + icono que brilla; un box-shadow inset no se ve: el border-image con fill lo tapa) */
+html.gfx .title .wb:hover{border-image-source:url(img/game/cubo_h.png);background:none;filter:brightness(1.25) saturate(1.1);outline:2px solid rgba(255,255,255,.75);outline-offset:-5px}
+html.gfx .title .wb:hover svg{filter:drop-shadow(0 0 3px #fff) drop-shadow(0 0 6px rgba(160,220,255,.9))}
+html.gfx .title .wb:active svg{transform:translateY(1px)}
+html.gfx .title .wb:active{border-image-source:url(img/game/cubo_p.png);filter:brightness(.82);outline:0}
+html.gfx .title .wb.x{background:none;border-image-source:url(img/game/cubo_rojo_n.png)}
+html.gfx .title .wb.x:hover{border-image-source:url(img/game/cubo_rojo_h.png);filter:brightness(1.18) saturate(1.15);outline:2px solid rgba(255,255,255,.75);outline-offset:-5px}
+html.gfx .title .wb.x:active{border-image-source:url(img/game/cubo_rojo_p.png);filter:brightness(.82);outline:0}
+
+/* ---- barra lateral: ventana blanca del juego con cubos azules; el activo es el cuadrado dorado */
+html.gfx nav{padding:0;gap:12px;background:none;box-shadow:none;border:solid transparent;border-width:12px;border-image:url(img/game/fila.png) 12 fill/12px}
+html.gfx .logo{width:52px;height:52px;background:none;border:0;box-shadow:none}
+html.gfx .logo img{width:48px;height:48px;filter:drop-shadow(0 2px 2px rgba(10,60,140,.35))}
+html.gfx nav a{border:solid transparent;border-width:12px 12px 10px;border-image:url(img/game/cubo_n.png) 12 12 10 fill/12px 12px 10px;background:none;box-shadow:none;transition:none}
+html.gfx nav a svg{filter:drop-shadow(0 1px 0 rgba(6,50,130,.75))}
+html.gfx nav a:hover{filter:brightness(1.15) saturate(1.08);border-image-source:url(img/game/cubo_h.png)}
+html.gfx nav a:active{border-image-source:url(img/game/cubo_p.png)}
+html.gfx nav a.on,html.gfx nav a.on:hover{background:none;border-image-source:url(img/game/cubo_oro.png);color:#5a3600}
+html.gfx nav a.on svg{filter:drop-shadow(0 1px 0 rgba(255,255,255,.7))}
+html.gfx nav a.on::before{display:none}
+
+/* ---- cinta de sección: la placa azul->cian con borde dorado de los nombres del lobby */
+html.gfx .cinta .g1,html.gfx .cinta .g2,html.gfx .cinta .g3{display:none}
+html.gfx .cinta .tx{margin:0;clip-path:none;background:none;padding:0 22px;border:solid transparent;border-width:14px;border-image:url(img/game/placa.png) 14 fill/14px}
+
+/* ---- botones: capsulas de la tienda (azul, dorada, roja) y la clara */
+html.gfx .b{border:solid transparent;border-width:16px 12px;border-image:url(img/game/btn_azul.png) 16 21 fill/16px 21px;background:none;box-shadow:none;padding:0 10px;letter-spacing:.01em}
+html.gfx .b.rojo{border-image-source:url(img/game/btn_rojo.png);border-color:transparent;background:none;text-shadow:-1px -1px 0 var(--olr),1px -1px 0 var(--olr),-1px 1px 0 var(--olr),1px 1px 0 var(--olr),0 2px 0 var(--olr)}
+html.gfx .b.oro{border-image-source:url(img/game/btn_oro.png);border-color:transparent;background:none;color:#fff;text-shadow:-1px -1px 0 var(--olg),1px -1px 0 var(--olg),-1px 1px 0 var(--olg),1px 1px 0 var(--olg),0 2px 0 var(--olg)}
+html.gfx .b.claro{border-image-source:url(img/game/btn_claro.png);border-image-slice:14 fill;border-image-width:14px;border-width:14px 12px;color:#0d4a9a;text-shadow:0 1px 0 #fff}
+html.gfx .b.claro.on{border-image-source:url(img/game/chip_oro.png);border-image-slice:12 fill;border-image-width:12px;border-width:12px;color:#4b2d00}
+html.gfx .b.claro .star{color:var(--gold2)}
+html.gfx .b:hover:not(:disabled){filter:brightness(1.08)}
+html.gfx .b:active:not(:disabled){filter:brightness(.92);transform:translateY(1px)}
+html.gfx .b:disabled{filter:grayscale(1) opacity(.55)}
+html.gfx .b .k{color:#ffe14a}
+
+/* ---- chips de filtro y desplegables (las pestañas de 3 estados del juego) */
+html.gfx .chip{border:solid transparent;border-width:12px;border-image:url(img/game/chip_azul.png) 12 fill/12px;background:none;padding:0 3px;color:#fff;
+  text-shadow:-1px -1px 0 var(--ol),1px -1px 0 var(--ol),-1px 1px 0 var(--ol),1px 1px 0 var(--ol),0 1px 0 var(--ol)}
+html.gfx .chip:hover{filter:brightness(1.05)}
+html.gfx .chip[aria-pressed=true]{border-image-source:url(img/game/chip_oro.png);background:none;color:#4b2d00;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+html.gfx .buscar{border-radius:5px;border:1px solid #3a6fcf;box-shadow:inset 1px 1px 0 #b8cbe6,inset 0 2px 3px rgba(10,50,120,.14)}
+html.gfx select.sel{border:solid transparent;border-width:6px 12px;border-image:url(img/game/chip_azul.png) 12/12px;padding:0 24px 0 2px;color:#fff;
+  background:url(img/game/flecha.png) right 8px center/18px 9px no-repeat,linear-gradient(180deg,#4d93fc,#4a8ff8);background-clip:padding-box,padding-box;
+  text-shadow:-1px -1px 0 var(--ol),1px -1px 0 var(--ol),-1px 1px 0 var(--ol),1px 1px 0 var(--ol),0 1px 0 var(--ol)}
+html.gfx select.campo{background-image:url(img/game/flecha.png);background-size:18px 9px;background-position:right 10px center;border-color:#3a6fcf;border-radius:5px}
+html.gfx .campo{border:1px solid #3a6fcf;border-radius:5px;box-shadow:inset 1px 1px 0 #b8cbe6,inset 0 2px 3px rgba(10,50,120,.14)}
+
+/* ---- tarjetas blancas del juego: filas, barras, ficha, noticias */
+html.gfx .fila,html.gfx .barra-con,html.gfx .barra-est,html.gfx .nov,html.gfx .det{
+  background:none;box-shadow:none;border:solid transparent;border-width:9px;border-image:url(img/game/fila.png) 12 fill/9px}
+html.gfx .fila{padding:1px 8px 1px 3px;overflow:visible}
+html.gfx .fila:hover{filter:brightness(1.025)}
+html.gfx .fila.fijo{background:none;border-image-source:url(img/game/fila_oro.png)}
+html.gfx .fila.sel{border-image-source:url(img/game/fila_sel.png);filter:drop-shadow(0 0 2px rgba(255,196,0,.95)) drop-shadow(0 2px 4px rgba(200,140,0,.25))}
+html.gfx .fila.sel::before,html.gfx .fila.sel::after{top:-10px;bottom:-10px}
+html.gfx .fila.sel::before{left:-19px}
+html.gfx .fila.sel::after{right:-19px}
+html.gfx .barra-con{padding:0 2px 0 8px;min-height:50px}
+html.gfx .barra-est{padding:0 6px;height:38px;overflow:hidden}
+html.gfx .nov{padding:2px 8px}
+html.gfx .det{overflow:visible}
+html.gfx .det .in{padding:10px 8px}
+html.gfx .det .pie{padding:8px 6px 4px}
+
+/* barra de jugadores: la barra de carga del juego (franjas amarillas) */
+html.gfx .track{height:12px;border-radius:3px;background:#1f4590;border:1px solid #0a2a70;box-shadow:inset 0 1px 2px rgba(0,0,0,.4)}
+html.gfx .track i{border-radius:0;background:url(img/game/carga.png) 0 0/auto 100% repeat-x}
+
+/* etiquetas */
+html.gfx .tag{border:solid transparent;border-width:5px 9px;border-image:url(img/game/tag_oro.png) 8 fill/8px;background:none;border-radius:0;padding:0;font-size:11.5px;color:#4b2d00;text-shadow:0 1px 0 rgba(255,255,255,.55)}
+html.gfx .tag.az{border-image-source:url(img/game/tag_azul.png);color:#fff;background:none;text-shadow:-1px -1px 0 #0a2f8f,1px -1px 0 #0a2f8f,-1px 1px 0 #0a2f8f,1px 1px 0 #0a2f8f}
+html.gfx .tag.vi{border-image-source:url(img/game/tag_violeta.png);color:#fff;background:none;text-shadow:-1px -1px 0 #3a1a9a,1px -1px 0 #3a1a9a,-1px 1px 0 #3a1a9a,1px 1px 0 #3a1a9a}
+html.gfx .tag.propio{border-image-source:url(img/game/tag_verde.png);color:#fff;background:none;text-shadow:-1px -1px 0 #0b5a2a,1px -1px 0 #0b5a2a,-1px 1px 0 #0b5a2a,1px 1px 0 #0b5a2a}
+html.gfx .tag.gr{border-image-source:url(img/game/tag_gris.png);color:#40506b;background:none}
+html.gfx .tag.sin{border-image-source:url(img/game/tag_rojo.png);color:#8a1019;background:none}
+html.gfx .salas .tag{font-size:10.5px}
+
+/* ---- ventanas del juego: paneles y diálogos (franja azul de título + cuerpo claro) */
+html.gfx .panel,html.gfx .caja{position:relative;overflow:visible;background:none;box-shadow:none;border:solid transparent;border-width:32px 12px 12px;border-image:url(img/game/win.png) 32 12 12 fill/32px 12px 12px}
+html.gfx .caja.error{border-image-source:url(img/game/win_rojo.png)}
+html.gfx .panel>h3,html.gfx .caja>h2{position:absolute;top:-32px;left:-12px;right:-12px;height:32px;min-height:0;margin:0;padding:0 14px;background:none;
+  font:700 16px/1 var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;gap:8px}
+html.gfx .panel>h3 svg,html.gfx .caja>h2 svg{font-size:18px}
+html.gfx .caja.error>h2{background:none;text-shadow:-1px -1px 0 var(--olr),1px -1px 0 var(--olr),-1px 1px 0 var(--olr),1px 1px 0 var(--olr),0 2px 0 var(--olr)}
+html.gfx .panel .pc{padding:10px 8px 8px}
+html.gfx .panel .pc.aj{padding:12px 8px}
+html.gfx .caja .cc{padding:12px 10px}
+html.gfx .caja .pie{padding:0 10px 8px}
+html.gfx .capa{background:rgba(8,38,92,.5)}
+
+/* ---- ficha del servidor: placa del nombre + opciones de crear servidor */
+html.gfx .det .hd{border:solid transparent;border-width:14px;border-image:url(img/game/placa.png) 14 fill/14px;background:none;margin:0;min-height:66px;padding:2px 62px 2px 6px}
+html.gfx .det .hd::after{display:none}
+html.gfx .det .hd .av{right:8px;top:6px}
+html.gfx .opc div{border:solid transparent;border-width:9px;border-image:url(img/game/fila.png) 12 fill/9px;background:none;padding:0 4px;position:relative}
+html.gfx .opc div .oi{border:solid transparent;border-width:12px 12px 10px;border-image:url(img/game/cubo_n.png) 12 12 10 fill/12px 12px 10px;background:none;padding:0;width:42px;height:42px}
+html.gfx .opc div .oi svg{filter:drop-shadow(0 1px 0 rgba(6,50,130,.75))}
+html.gfx .opc div[aria-checked=true]{border:solid transparent;border-width:9px;padding:0 4px;border-image:url(img/game/fila_orosel.png) 12 fill/9px;background:none;filter:drop-shadow(0 0 2px rgba(255,196,0,.95))}
+html.gfx .opc div[aria-checked=true] .oi{background:none;color:#5a3600;border-image-source:url(img/game/cubo_oro.png)}
+html.gfx .opc div[aria-checked=true] .oi svg{filter:drop-shadow(0 1px 0 rgba(255,255,255,.7))}
+
+/* ---- casilla del juego en lugar del interruptor */
+html.gfx .tog{width:30px;height:30px;border:0;border-radius:0;box-shadow:none;background:url(img/game/casilla.png) center/30px 30px no-repeat}
+html.gfx .tog::after{display:none}
+html.gfx .tog[aria-checked=true]{background:url(img/game/casilla_on.png) center/30px 30px no-repeat;border:0}
+
+/* ---- barras de desplazamiento del juego */
+html.gfx ::-webkit-scrollbar{width:14px;height:14px}
+html.gfx ::-webkit-scrollbar-track{background:url(img/game/scroll_carril.png);border-radius:0}
+html.gfx ::-webkit-scrollbar-thumb{background:none;border:solid transparent;border-width:5px 4px;border-image:url(img/game/scroll_pulgar.png) 5 4 fill/5px 4px;border-radius:0}
+
+/* ---- avisos */
+html.gfx .toast{position:relative;background:none;box-shadow:none;border:solid transparent;border-width:9px 12px 9px 18px;border-image:url(img/game/fila.png) 12 fill/9px 12px}
+html.gfx .toast::before{content:"";position:absolute;left:-12px;top:-3px;bottom:-3px;width:5px;border-radius:3px;background:var(--b2)}
+html.gfx .toast.warn::before{background:var(--gold2)} html.gfx .toast.mal::before{background:var(--red)} html.gfx .toast.ok::before{background:var(--green)}
+html.gfx .pista.vacia,html.gfx .sec-off{background:var(--glass)}
+
+/* =====================================================================================================================
+   Iconos: orbes de colores brillantes (img/ico/: los del panel de administracion + los generados por app/arte/iconos_ia.py)
+   en lugar de los glifos de una sola tinta. app.js y index.html ponen data-o="nombre" en los <svg class="i">; sin html.gfx
+   (o si falta una imagen) se ven los glifos de siempre.
+   ===================================================================================================================== */
+html.gfx svg.i[data-o]{width:1.35em;height:1.35em;margin:-.15em -.05em;background:var(--o) center/contain no-repeat;filter:none!important;stroke:none}
+html.gfx svg.i[data-o] use{display:none}
+html.gfx svg.i[data-o=star].off{filter:grayscale(1) brightness(1.12) opacity(.8)!important}
+html.gfx svg.i[data-o=key]{--o:url(img/ico/key_64.png)}
+html.gfx svg.i[data-o=star]{--o:url(img/ico/star_64.png)}
+html.gfx svg.i[data-o=folder]{--o:url(img/ico/folder_64.png)}
+html.gfx svg.i[data-o=shield]{--o:url(img/ico/shield_64.png)}
+html.gfx svg.i[data-o=sparkle]{--o:url(img/ico/sparkle_64.png)}
+html.gfx svg.i[data-o=globe]{--o:url(img/ico/globe_64.png)}
+html.gfx svg.i[data-o=play]{--o:url(img/ico/play_64.png)}
+html.gfx svg.i[data-o=stop]{--o:url(img/ico/stop_64.png)}
+html.gfx svg.i[data-o=check]{--o:url(img/ico/check_64.png)}
+html.gfx svg.i[data-o=plug]{--o:url(img/ico/plug_64.png)}
+html.gfx svg.i[data-o=eye]{--o:url(img/ico/eye_64.png)}
+html.gfx svg.i[data-o=eyeoff]{--o:url(img/ico/eyeoff_64.png)}
+html.gfx svg.i[data-o=copy]{--o:url(img/ico/copy_64.png)}
+html.gfx svg.i[data-o=search]{--o:url(img/ico/search_64.png)}
+html.gfx svg.i[data-o=info]{--o:url(img/ico/info_64.png)}
+html.gfx svg.i[data-o=plus]{--o:url(img/ico/plus_64.png)}
+html.gfx svg.i[data-o=mundo]{--o:url(img/ico/mundo_64.png)}
+html.gfx svg.i[data-o=servidor]{--o:url(img/ico/servidor_64.png)}
+html.gfx svg.i[data-o=novedades]{--o:url(img/ico/novedades_64.png)}
+html.gfx svg.i[data-o=ajustes]{--o:url(img/ico/ajustes_64.png)}
+html.gfx svg.i[data-o=intercambios]{--o:url(img/ico/intercambios_64.png)}
+html.gfx svg.i[data-o=torneos]{--o:url(img/ico/torneos_64.png)}
+html.gfx svg.i[data-o=catalogo]{--o:url(img/ico/catalogo_64.png)}
+html.gfx svg.i[data-o=jugadores]{--o:url(img/ico/jugadores_64.png)}
+html.gfx svg.i[data-o=duelo_disco]{--o:url(img/ico/duelo_disco_64.png)}
+html.gfx svg.i[data-o=disco_c2]{--o:url(img/ico/disco_c2_64.png)}
+html.gfx svg.i[data-o=disco_c3]{--o:url(img/ico/disco_c3_64.png)}
+html.gfx svg.i[data-o=disco_c4]{--o:url(img/ico/disco_c4_64.png)}
+html.gfx svg.i[data-o=disco_c5]{--o:url(img/ico/disco_c5_64.png)}
+html.gfx svg.i[data-o=sanciones]{--o:url(img/ico/sanciones_64.png)}
+html.gfx svg.i[data-o=alerta]{--o:url(img/ico/alerta_64.png)}
+@media (min-resolution:1.5dppx){
+  html.gfx svg.i[data-o=key]{--o:url(img/ico/key_128.png)}
+  html.gfx svg.i[data-o=star]{--o:url(img/ico/star_128.png)}
+  html.gfx svg.i[data-o=folder]{--o:url(img/ico/folder_128.png)}
+  html.gfx svg.i[data-o=shield]{--o:url(img/ico/shield_128.png)}
+  html.gfx svg.i[data-o=sparkle]{--o:url(img/ico/sparkle_128.png)}
+  html.gfx svg.i[data-o=globe]{--o:url(img/ico/globe_128.png)}
+  html.gfx svg.i[data-o=play]{--o:url(img/ico/play_128.png)}
+  html.gfx svg.i[data-o=stop]{--o:url(img/ico/stop_128.png)}
+  html.gfx svg.i[data-o=check]{--o:url(img/ico/check_128.png)}
+  html.gfx svg.i[data-o=plug]{--o:url(img/ico/plug_128.png)}
+  html.gfx svg.i[data-o=eye]{--o:url(img/ico/eye_128.png)}
+  html.gfx svg.i[data-o=eyeoff]{--o:url(img/ico/eyeoff_128.png)}
+  html.gfx svg.i[data-o=copy]{--o:url(img/ico/copy_128.png)}
+  html.gfx svg.i[data-o=search]{--o:url(img/ico/search_128.png)}
+  html.gfx svg.i[data-o=info]{--o:url(img/ico/info_128.png)}
+  html.gfx svg.i[data-o=plus]{--o:url(img/ico/plus_128.png)}
+  html.gfx svg.i[data-o=mundo]{--o:url(img/ico/mundo_128.png)}
+  html.gfx svg.i[data-o=servidor]{--o:url(img/ico/servidor_128.png)}
+  html.gfx svg.i[data-o=novedades]{--o:url(img/ico/novedades_128.png)}
+  html.gfx svg.i[data-o=ajustes]{--o:url(img/ico/ajustes_128.png)}
+  html.gfx svg.i[data-o=intercambios]{--o:url(img/ico/intercambios_128.png)}
+  html.gfx svg.i[data-o=torneos]{--o:url(img/ico/torneos_128.png)}
+  html.gfx svg.i[data-o=catalogo]{--o:url(img/ico/catalogo_128.png)}
+  html.gfx svg.i[data-o=jugadores]{--o:url(img/ico/jugadores_128.png)}
+  html.gfx svg.i[data-o=duelo_disco]{--o:url(img/ico/duelo_disco_128.png)}
+  html.gfx svg.i[data-o=disco_c2]{--o:url(img/ico/disco_c2_128.png)}
+  html.gfx svg.i[data-o=disco_c3]{--o:url(img/ico/disco_c3_128.png)}
+  html.gfx svg.i[data-o=disco_c4]{--o:url(img/ico/disco_c4_128.png)}
+  html.gfx svg.i[data-o=disco_c5]{--o:url(img/ico/disco_c5_128.png)}
+  html.gfx svg.i[data-o=sanciones]{--o:url(img/ico/sanciones_128.png)}
+  html.gfx svg.i[data-o=alerta]{--o:url(img/ico/alerta_128.png)}
+}
+/* avatares de servidor: el propio orbe, sin el disco de color de detras */
+html.gfx .av{background:none;border:0;box-shadow:none;border-radius:0}
+html.gfx .av svg.i{width:100%;height:100%;margin:0;filter:drop-shadow(0 2px 2px rgba(0,40,110,.4))!important}
+html.gfx .det .hd .av{filter:none}
+/* tarjetas de «Host a server»: el orbe directamente */
+html.gfx .opc div .oi,html.gfx .opc div[aria-checked=true] .oi{border:0;border-image:none;background:none;width:44px;height:44px;padding:0}
+html.gfx .opc div .oi svg.i{width:100%;height:100%;margin:0;filter:drop-shadow(0 2px 2px rgba(0,40,110,.35))!important}
+html.gfx .opc div[aria-checked=true] .oi svg.i{filter:drop-shadow(0 0 4px rgba(255,200,0,.95)) drop-shadow(0 2px 2px rgba(120,70,0,.4))!important}
+/* barra lateral: el orbe sobre la baldosa azul (o dorada si esta activa) */
+html.gfx nav a svg.i[data-o]{width:38px;height:38px;margin:-5px;font-size:inherit;filter:drop-shadow(0 1px 1px rgba(0,30,100,.5))!important}
+html.gfx .est-aj svg.i,html.gfx .det .kv b svg.i,html.gfx .nom svg.i,html.gfx .aj small svg.i{margin-right:.35em}
+html.gfx .title .wb svg.i{background:none}
+html.gfx .paso i svg.i{width:1em;height:1em;margin:0}
+
+/* =====================================================================================================================
+   Tema oscuro (html.dark, lo pone tema.js): las mismas piezas del juego sobre azul noche. Botones, chips, etiquetas, cubos
+   y orbes son los mismos; cambian las tarjetas, las ventanas, el boton claro, el carril de la barra, el fondo y el emblema
+   (img/game/osc/, hechos por graficos.py).
+   ===================================================================================================================== */
+html.gfx.dark .win{background:radial-gradient(70% 60% at 55% 50%,rgba(70,120,210,.16),rgba(70,120,210,0) 75%),url(img/game/osc/fondo.jpg) center/100% 100%,#0b1a3a}
+html.gfx.dark .win::before{background-image:url(img/game/osc/emblema.png);opacity:.3}
+html.gfx.dark .title{background-image:url(img/game/osc/titulo.png)}
+html.gfx.dark nav{border-image-source:url(img/game/osc/fila.png)}
+html.gfx.dark .fila,html.gfx.dark .barra-con,html.gfx.dark .barra-est,html.gfx.dark .nov,html.gfx.dark .det,html.gfx.dark .opc div,html.gfx.dark .toast{border-image-source:url(img/game/osc/fila.png)}
+html.gfx.dark .fila.fijo{border-image-source:url(img/game/osc/fila_oro.png)}
+html.gfx.dark .fila.sel{border-image-source:url(img/game/osc/fila_sel.png);filter:drop-shadow(0 0 2px rgba(255,196,0,.9)) drop-shadow(0 2px 6px rgba(0,0,0,.4))}
+html.gfx.dark .opc div[aria-checked=true]{border-image-source:url(img/game/osc/fila_orosel.png)}
+html.gfx.dark .panel,html.gfx.dark .caja{border-image-source:url(img/game/osc/win.png)}
+html.gfx.dark .caja.error{border-image-source:url(img/game/osc/win_rojo.png)}
+html.gfx.dark .b.claro{border-image-source:url(img/game/osc/btn_claro.png);color:#eaf2ff;text-shadow:0 1px 0 rgba(0,20,70,.8)}
+html.gfx.dark .b.claro.on{border-image-source:url(img/game/chip_oro.png);color:#4b2d00;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+html.gfx.dark ::-webkit-scrollbar-track{background-image:url(img/game/osc/scroll_carril.png)}
+html.gfx.dark .buscar,html.gfx.dark .campo{border-color:#4573c8;box-shadow:inset 0 2px 3px rgba(0,0,0,.5)}
+html.gfx.dark .av svg.i{filter:drop-shadow(0 2px 3px rgba(0,0,0,.55))!important}
+html.gfx.dark .tag.gr,html.gfx.dark .tag.sin,html.gfx.dark .tag:not(.az):not(.vi):not(.propio){text-shadow:0 1px 0 rgba(255,255,255,.55)}
+html.gfx.dark .pista.vacia{border-color:#3f6cc0}
+
+@media (max-width:1099px){
+  html.gfx .chip{padding:0 1px}
+  html.gfx .tag{border-width:5px 6px;font-size:11px}
+  html.gfx .fila{padding:1px 6px 1px 2px}
+  html.gfx .det .hd{padding:2px 56px 2px 4px}
+}
+@media (max-height:640px){
+  html.gfx .fila{padding-top:0;padding-bottom:0}
+  html.gfx .barra-con{min-height:44px}
+  html.gfx .barra-est{height:34px}
+  html.gfx .det .hd{min-height:56px}
+}

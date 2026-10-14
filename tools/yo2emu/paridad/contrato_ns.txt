@@ -1,0 +1,197 @@
+# Contrato del namespace de run.py (REESTRUCTURA.md §3.4 P0c). Lo comprueba paridad/test_contrato.py (T10).
+# Cada línea: NOMBRE<TAB>TIPO<TAB>quién lo usa. NOMBRE = global de run.py; «M.A» = atributo de un módulo del
+# namespace y «X[k]» = clave de un dict del namespace (banderas del panel). TIPO = type(valor).__name__ en una
+# instancia de prueba recién arrancada (sqlite, panel encendido, sin cliente).
+# Fuentes: A = NS[...]/ns[...]/self.env[...]/g[...] en el código; B = nombre libre de un script que se ejecuta con
+# exec(..., globals()) (hot_*, reload_*, *_live, scratchpad); C = línea de consola (admin.py en la documentación o
+# console(...) de una prueba); D = bandera del panel; E = tabla §1.4 del plan.
+# Generado con «python paridad/test_contrato.py --extraer» el 2026-10-08 00:01 (offset 1130). 140 nombres comprobados; 43 candidatos ausentes en la base (al final,
+# comentados: no se comprueban). Si un paso QUITA o cambia de tipo un nombre a propósito, se edita esta línea a
+# mano con el motivo en un comentario; si aparece un consumidor nuevo, se vuelve a extraer.
+
+_duel_reserva_mode	function	A:research/seguridad_duelo/hot_reserva.py, B:research/seguridad_duelo/hot_reserva.py
+_h_selectpack_pvp	function	C:research/persistencia/test_hot_pvp_carta.py
+_handle	function	A:research/cuentas/hot_en_uso.py, A:research/seguridad_duelo/hot_reserva.py, B:research/cuentas/hot_en_uso.py, B:research/seguridad_duelo/hot_reserva.py
+_LOGSEG	list	A:research/cuentas/hot_logseguro.py, B:research/cuentas/hot_logseguro.py
+_OCG_WARM	bool	A:run.py
+_rx_line	function	C:research/persistencia/test_hot_pvp_carta.py
+_tcf	function	A:reload_ocg.py, B:reload_ocg.py
+ACAD_AREA	int	A:research/lobby/proposal.py
+ACAD_KINDS	set	A:pvp_hub.py, A:research/admin/panel.py, A:research/lobby/proposal.py
+ACCT_KEYS	tuple	A:research/admin/hot_duelpass_saldo.py, A:research/admin/sec_duelpass.py, A:research/persistencia/hot_pvp_carta.py, B:research/admin/hot_duelpass_saldo.py (+2)
+ADMIN_WEB	module	A:research/admin/hot_arte.py, A:research/admin/hot_chibi.py, A:research/admin/hot_datos_kb.py, A:research/admin/hot_donde.py (+38)
+auto_reply	function	A:pvp_match.py
+AV	module	A:run.py, E:REESTRUCTURA.md §1.4
+AV_STATE	dict	A:run.py, E:REESTRUCTURA.md §1.4
+block_player	function	A:pvp_hub.py, A:research/lobby/proposal.py
+block_type	function	B:acad_patch_live.py
+Conn	type	A:research/cuentas/hot_en_uso.py, A:research/seguridad_duelo/hot_reserva.py, B:research/cuentas/hot_en_uso.py, B:research/seguridad_duelo/hot_reserva.py (+1)
+CONNS	dict	A:reload_duel.py, A:research/lobby/proposal.py, B:reload_duel.py, B:reload_duel_keep.py (+3)
+CTX	_local	A:pvp_match.py, A:pvp_test.py, A:research/admin/panel.py, A:research/admin/sec_duelpass.py (+8)
+cur_sess	function	A:research/mundo/proposal.py, B:research/admin/hot_duelpass_saldo.py
+current_conn	function	B:research/duelfin/hot_desconexion.py
+DEADLINE	int	E:REESTRUCTURA.md §1.4
+DF	dict	A:reload_translator.py, A:research/duelfin/hot_desconexion.py, A:research/lobby/proposal.py, A:run.py (+5)
+df_for	function	B:research/duelfin/hot_desconexion.py
+DFM	module	A:npc_watch.py, A:pvp_match.py, A:reload_translator.py, A:research/persistencia/hot_dp_coste.py (+11)
+DOMINO_AREA	int	A:research/lobby/proposal.py
+dp_balance	function	A:research/lobby/proposal.py, B:research/persistencia/hot_dp_coste.py
+dp_npc_gate	function	B:research/persistencia/hot_dp_coste.py
+DPC	module	A:research/admin/hot_duelpass_juego.py, B:research/admin/hot_duelpass_juego.py
+DT	DuelTickets	A:research/seguridad_duelo/hot_reserva.py, A:run.py, B:research/seguridad_duelo/hot_reserva.py
+DUEL	dict	A:research/lobby/proposal.py, E:REESTRUCTURA.md §1.4
+duel_begin	function	A:research/lobby/hot_npc_mirar.py, A:research/lobby/proposal.py, B:research/lobby/hot_npc_mirar.py
+duel_ip_for	function	A:research/lobby/proposal.py, A:research/torneos/proposal.py
+DUEL_MODE	str	A:run.py
+duel_parts	function	A:npc_watch.py, A:pvp_match.py, A:research/torneos/proposal.py
+DUEL_PORT	int	A:pvp_test.py, A:research/lobby/hot_npc_mirar.py, A:research/lobby/proposal.py, A:research/torneos/proposal.py (+3)
+duel_reply	function	A:ocg_test.py, A:pvp_test.py, A:research/lobby/hot_npc_mirar.py, B:research/lobby/hot_npc_mirar.py
+DUEL_RESERVA	str	A:research/seguridad_duelo/hot_reserva.py, A:run.py, B:research/seguridad_duelo/hot_reserva.py
+duel_reserva	function	C:research/seguridad_duelo/NOTES.md, C:research/seguridad_duelo/hot_reserva.py, C:research/seguridad_duelo/test_hot_reserva.py
+DUEL_RESERVA_MODOS	tuple	A:research/seguridad_duelo/hot_reserva.py, B:research/seguridad_duelo/hot_reserva.py
+duel_rival	function	A:npc_watch.py
+EQ	module	A:research/admin/sec_duelos_equipos.py, A:research/admin/secciones.py, A:research/lobby/proposal.py, E:REESTRUCTURA.md §1.4
+GAME_PORT	int	A:pvp_hub.py, A:research/admin/sec_duelpass.py, A:research/cuentas/hot_en_uso.py, B:research/admin/hot_duelpass_saldo.py (+1)
+GATE_PORT	int	A:pvp_hub.py, A:research/admin/sec_sistema.py, B:seq_patch_live.py
+HANDLERS	dict	A:research/admin/sec_sistema.py, A:research/lobby/hot_npc_mirar.py, B:acad_patch_live.py, B:reload_duel.py (+3)
+HERE	str	A:research/cuentas/hot_en_uso.py, A:research/cuentas/hot_login.py, A:research/cuentas/hot_logseguro.py, A:research/cuentas/hot_sin_sesion.py (+31)
+HUB	Hub	A:npc_watch.py, A:research/admin/panel.py, A:research/admin/sec_duelos_equipos.py, A:research/cuentas/hot_en_uso.py (+21)
+HUB_KEYS	tuple	A:research/admin/sec_cuentas.py, A:research/cuentas/hot_login.py, B:research/cuentas/hot_login.py
+json	module	B:diag_atk_live.py, C:research/cuentas/test_en_uso.py, C:research/cuentas/test_sin_sesion.py
+live_conn	function	A:pvp_match.py, A:research/admin/sec_duelpass.py, B:research/admin/hot_duelpass_saldo.py
+load_npcs	function	A:research/admin/panel.py, A:research/npcs_web/check_npcs.py
+load_research	function	A:run.py
+load_state	function	A:pvp_match.py, A:research/admin/panel.py, A:research/admin/sec_duelpass.py, A:research/equipos/proposal.py (+6)
+load_state_raw	function	A:pvp_hub.py, A:research/admin/panel.py, A:research/admin/sec_cuentas.py, A:research/admin/sec_duelpass.py (+9)
+LOBBY_PORT	int	A:research/lobby/proposal.py, B:acad_patch_live.py, B:research/lobby/hot_amigos.py
+lobby_reply	function	A:ocg_test.py, A:pvp_test.py, A:research/persistencia/hot_dp_coste.py, B:research/persistencia/hot_dp_coste.py
+LOBBY_ROOM	dict	A:research/lobby/proposal.py, A:run.py, E:REESTRUCTURA.md §1.4
+log	function	A:npc_watch.py, A:pvp_hub.py, A:pvp_match.py, A:research/admin/panel.py (+62)
+log_path	str	A:ocg_test.py, A:pvp_test.py, A:research/admin/panel.py, A:research/admin/sec_sistema.py (+1)
+LOGDIR	str	A:research/admin/panel.py, A:research/cuentas/hot_en_uso.py, A:research/lobby/hot_npc_mirar.py, A:research/lobby/hot_sala_tras_pvp.py (+7)
+logf	TextIOWrapper	A:ocg_test.py, A:pvp_test.py
+LP	module	A:pvp_match.py, A:pvp_test.py, A:research/admin/panel.py, A:research/admin/sec_duelpass.py (+17)
+LP.LIMIT_LIST	bool	D:research/admin/panel.py
+LP.PIDNAME_PLAYERS	bool	D:research/admin/panel.py
+LP.ROOM_REOPEN	bool	D:research/admin/panel.py
+LP.WATCH	bool	D:research/admin/panel.py
+LS	module	A:pvp_match.py, A:reload_duel.py, A:research/lockstep/hot_janken.py, A:run.py (+5)
+MAX_SAVED_ACCOUNTS	int	A:research/admin/sec_cuentas.py, A:research/cuentas/hot_sin_sesion.py, B:research/cuentas/hot_sin_sesion.py
+MUNDO_2008	dict	A:research/mundo/proposal.py, D:research/admin/panel.py
+MUNDO_2008[challenge]	bool	D:research/admin/panel.py
+MUNDO_2008[hair_titles]	bool	D:research/admin/panel.py
+MUNDO_2008[prizes]	bool	D:research/admin/panel.py
+MUNDO_2008[pvp_titles]	bool	D:research/admin/panel.py
+MUNDO_2008[spots]	bool	D:research/admin/panel.py
+MUNDO_2008[title_owned]	bool	D:research/admin/panel.py
+MW	module	A:research/admin/panel.py, D:research/admin/panel.py, E:REESTRUCTURA.md §1.4
+MW.GM_ACCOUNTS	bool	D:research/admin/panel.py
+my_name	function	A:research/equipos/proposal.py, A:research/lobby/proposal.py
+my_pid	function	A:research/equipos/proposal.py, A:research/lobby/proposal.py
+MYROOM_SELF_AVATAR	bool	D:research/admin/panel.py
+NPC_RULES_2008	dict	A:research/persistencia/hot_dp_coste.py, A:run.py, B:research/persistencia/hot_dp_coste.py, D:research/admin/panel.py
+NPC_RULES_2008[card]	bool	D:research/admin/panel.py
+NPC_RULES_2008[dp]	bool	D:research/admin/panel.py
+NPC_RULES_2008[famous_decks]	bool	D:research/admin/panel.py
+NPC_RULES_2008[friendship]	bool	D:research/admin/panel.py
+NPC_RULES_2008[no_record]	bool	D:research/admin/panel.py
+NPC_RULES_2008[npc_window]	bool	D:research/admin/panel.py
+NPC_SPOTS_2008	bool	D:research/admin/panel.py
+npc_watch	module	A:research/lobby/hot_npc_mirar.py, A:research/repeticion/hot_archivo.py, B:research/lobby/hot_npc_mirar.py, B:research/repeticion/hot_archivo.py
+NPCS	list	A:npc_watch.py, A:pvp_test.py, A:research/admin/panel.py, A:research/admin/sec_sistema.py (+4)
+NR	module	A:run.py, E:REESTRUCTURA.md §1.4
+NW	NpcWatch	A:research/lobby/hot_npc_mirar.py, A:research/lobby/proposal.py, A:run.py, B:research/lobby/hot_npc_mirar.py
+OCG	module	A:npc_watch.py, A:ocg_test.py, A:pvp_match.py, A:pvp_test.py (+38)
+OCG_CLIENT_MSGS	tuple	A:pvp_match.py
+on_conn_closed	function	A:pvp_test.py
+os	module	B:reload_duel.py, B:reload_lobby.py, B:reload_ocg.py, B:reload_translator.py (+35)
+OWNER_ACCT	str	A:pvp_hub.py, A:research/admin/panel.py, A:research/admin/sec_cuentas.py, A:research/admin/sec_duelpass.py (+4)
+PEER_CONNS	dict	A:research/admin/secciones.py, A:research/duelfin/hot_desconexion.py, A:research/lobby/proposal.py, A:run.py (+2)
+PH	dict	A:research/admin/hot_duelpass_juego.py, A:research/admin/hot_duelpass_saldo.py, A:research/admin/sec_duelpass.py, A:research/persistencia/duelpass.py (+3)
+PH_GAME	dict	A:research/admin/sec_duelpass.py, B:research/admin/hot_duelpass_saldo.py
+PH_LOBBY	dict	A:research/admin/sec_duelpass.py, A:research/persistencia/duelpass.py, B:research/admin/hot_duelpass_juego.py, B:research/admin/hot_duelpass_saldo.py
+PLAYER_ID	int	A:research/equipos/proposal.py, A:research/lobby/proposal.py, E:REESTRUCTURA.md §1.4
+PORT_OFFSET	int	A:research/admin/panel.py, A:research/admin/sec_sistema.py
+PP	module	A:research/admin/hot_duelpass_juego.py, A:research/admin/hot_duelpass_saldo.py, A:research/admin/panel.py, A:research/admin/sec_duelpass.py (+19)
+preparation_result	function	A:npc_watch.py
+proto	module	A:pvp_match.py, A:research/admin/panel.py, B:seq_patch_live.py
+PUBLIC_IP	str	A:research/lobby/proposal.py, A:research/torneos/proposal.py
+PVP	Matches	A:pvp_hub.py, A:pvp_test.py, A:research/admin/secciones.py, A:research/lobby/proposal.py (+9)
+pvp_card_install	function	A:research/persistencia/hot_pvp_carta.py, B:research/persistencia/hot_pvp_carta.py
+pvp_hub	module	A:npc_watch.py, A:research/admin/panel.py, A:research/admin/sec_cuentas.py, A:research/cuentas/hot_en_uso.py (+18)
+pvp_hub.AREA_BLOCKS	bool	D:research/admin/panel.py
+pvp_hub.NPC_DUEL_STATE	bool	D:research/admin/panel.py
+pvp_hub.RIVAL_CARD	bool	D:research/admin/panel.py
+pvp_match	module	A:npc_watch.py, A:pvp_test.py, A:research/admin/sec_duelos_equipos.py, A:research/lobby/hot_npc_mirar.py (+9)
+pvp_match.PVP_DUELLOG_FINISH	bool	D:research/admin/panel.py
+pvp_match.PVP_DUELLOG_RECORD	bool	D:research/admin/panel.py
+register_account	function	A:pvp_hub.py, A:research/cuentas/hot_login.py, B:research/cuentas/hot_login.py
+respawn_client	function	C:HANDOFF.md
+ROOM_KINDS	tuple	A:npc_watch.py, A:pvp_hub.py, A:pvp_match.py, A:pvp_test.py (+3)
+ROOM_PORT_BASE	int	A:npc_watch.py, A:pvp_hub.py, A:pvp_match.py, A:pvp_test.py (+3)
+save_state	function	A:pvp_match.py, A:research/admin/panel.py, A:research/admin/sec_duelpass.py, A:research/equipos/proposal.py (+6)
+save_state_raw	function	A:research/admin/sec_cuentas.py, A:research/admin/sec_ranking_balance.py, A:research/admin/secciones.py, A:research/cuentas/migrar_testacc.py (+3)
+send	function	C:HANDOFF.md, C:admin.py, C:research/duelo_cpu/NOTES.md
+serve	function	A:research/cuentas/hot_sin_sesion.py, B:research/cuentas/hot_sin_sesion.py
+shop_catalog	function	B:research/persistencia/hot_tienda2.py
+shop_purchase	function	A:pvp_match.py, A:research/lobby/proposal.py, B:research/admin/hot_duelpass_saldo.py
+SIN_SESION	_SinSesion	A:research/cuentas/hot_sin_sesion.py, A:run.py, B:research/cuentas/hot_sin_sesion.py
+SRV	Server	A:run.py, A:yo2srv/server.py, C:yo2srv/hot.py
+STATE_LOCK	RLock	A:pvp_match.py, A:research/admin/panel.py, A:research/admin/sec_cuentas.py, A:research/admin/sec_duelpass.py (+10)
+STATE_PATH	str	A:npc_watch.py, A:pvp_match.py, A:research/admin/panel.py, A:research/admin/sec_ranking_balance.py (+7)
+STORAGE	str	A:research/admin/sec_ranking_balance.py
+STORE	Store	A:carga.py, A:research/admin/panel.py, A:research/admin/sec_ranking_balance.py, A:research/admin/secciones.py (+3)
+struct	module	B:research/lobby/hot_amigos.py, B:research/persistencia/hot_tienda2.py, B:research/repeticion/hot_repeticion.py, C:research/duelo_cpu/NOTES.md
+sys	module	B:reload_ocg.py, B:reload_translator.py, B:research/admin/hot_arte.py, B:research/admin/hot_chibi.py (+23)
+threading	module	B:research/cuentas/hot_sin_sesion.py, C:HANDOFF.md
+TO	module	A:run.py, D:research/admin/panel.py, E:REESTRUCTURA.md §1.4
+TO.AUTO_CLOCK	bool	D:research/admin/panel.py
+TO.EVENTS_ON	bool	D:research/admin/panel.py
+TO.TOURNAMENT_ON	bool	D:research/admin/panel.py
+TP	module	A:research/admin/sec_ranking_balance.py, A:run.py, E:REESTRUCTURA.md §1.4
+
+# ---- Candidatos AUSENTES en la base (no se comprueban): opcionales leídos con .get/try, nombres que crea la
+# ---- propia recarga o la prueba, variables de entorno o de otros dicts que el patrón confunde, documentación vieja.
+# _base_lobby	-	A:shop_patch.py
+# _CARGA	-	A:carga.py
+# _carga_dump	-	C:carga.py
+# _DUEL_LAST	-	A:seq_patch_live.py, B:seq_patch_live.py
+# _HCT_SRC	-	A:research/traductor/hot_contador_turnos.py, B:research/traductor/hot_contador_turnos.py
+# _hct_test_c	-	C:research/traductor/test_hot_contador_turnos.py
+# _HD_SRC	-	A:research/traductor/hot_descarte.py, B:research/traductor/hot_descarte.py
+# _hd_test_c	-	C:research/traductor/test_hot_descarte.py
+# _HIV_SRC	-	A:research/traductor/hot_invocaciones.py, B:research/traductor/hot_invocaciones.py
+# _hiv_test_c	-	C:research/traductor/test_hot_invocaciones.py
+# _HJ_SRC	-	A:research/lockstep/hot_janken.py, B:research/lockstep/hot_janken.py
+# _HMC_SRC	-	A:research/traductor/hot_mano_cadena.py, B:research/traductor/hot_mano_cadena.py
+# _hmc_test_c	-	C:research/traductor/test_hot_mano_cadena.py
+# _HOT_CONTADOR_TURNOS	-	A:research/traductor/hot_contador_turnos.py, B:research/traductor/hot_contador_turnos.py, C:research/traductor/test_hot_contador_turnos.py
+# _HOT_DESCARTE	-	A:research/traductor/hot_descarte.py, B:research/traductor/hot_descarte.py, C:research/traductor/test_hot_descarte.py
+# _HOT_INVOCACIONES	-	A:research/traductor/hot_invocaciones.py, B:research/traductor/hot_invocaciones.py, C:research/traductor/test_hot_invocaciones.py
+# _HOT_LAST	-	A:yo2srv/hot.py
+# _HOT_MANO_CADENA	-	A:research/traductor/hot_mano_cadena.py, B:research/traductor/hot_mano_cadena.py, C:research/traductor/test_hot_mano_cadena.py
+# _HOT_PV	-	C:research/admin/test_partidas_vivo.py
+# _HT_SRC	-	A:research/traductor/hot_tiempo.py, B:research/traductor/hot_tiempo.py
+# _JANKEN_RNG	-	A:research/lockstep/proposal.py
+# _lobby_shop_prev	-	A:shop_patch.py
+# _MT_NEW	-	A:research/cuentas/migrar_testacc.py
+# _MT_OLD	-	A:research/cuentas/migrar_testacc.py
+# _RL_ARGS	-	A:reload_duel.py, A:reload_ocg.py, B:reload_duel.py, B:reload_ocg.py
+# _RL_LAST	-	A:reload_duel.py, A:reload_ocg.py, A:research/duelfin/hot_desconexion.py, B:reload_duel.py (+6)
+# _RL_LOCK	-	A:reload_duel.py, A:reload_ocg.py, A:reload_translator.py, A:research/lockstep/hot_janken.py (+14)
+# _SEQ_PATCHED	-	A:seq_patch_live.py, B:seq_patch_live.py
+# _WATCHDOG_ON	-	A:research/audit/work_estabilidad/propuesta_robustez.py
+# admin_maintenotice	-	A:research/admin/panel.py
+# autos	-	A:ocg_test.py
+# chibi_layers	-	A:research/admin/hot_chibi.py, B:research/admin/hot_chibi.py
+# datos	-	C:HANDOFF.md
+# duel_reply_base	-	A:research/lockstep/proposal.py
+# hot	-	C:REESTRUCTURA.md
+# hot_duelpass	-	C:research/admin/test_sec_duelpass.py
+# hot_duelpass_juego	-	C:research/admin/test_sec_duelpass.py
+# hot_duelpass_saldo	-	C:research/admin/test_sec_duelpass.py
+# Hub	-	A:research/lobby/hot_sala_tras_pvp.py, B:research/lobby/hot_sala_tras_pvp.py
+# PUERTO	-	C:HANDOFF.md
+# sess	-	B:diag_atk_live.py
+# stuck	-	A:ocg_test.py
+# YO2Duel	-	A:research/traductor/hot_contador_turnos.py, A:research/traductor/hot_descarte.py, A:research/traductor/hot_invocaciones.py, A:research/traductor/hot_mano_cadena.py (+4)

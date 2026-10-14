@@ -1,0 +1,682 @@
+{
+ "0x3001": [],
+ "0x3100": [
+  {
+   "id": "0x3103",
+   "name": "YG_MSG_TRUNKDATAEND",
+   "fmt": []
+  }
+ ],
+ "0x3110": [
+  {
+   "id": "0x3111",
+   "name": "YG_MSG_DUELPASSPURCHASERESULT",
+   "fmt": [
+    "s32"
+   ]
+  }
+ ],
+ "0x3114": [
+  {
+   "id": "0x3114",
+   "name": "YG_MSG_GETPBIN",
+   "fmt": [
+    "bytes128"
+   ]
+  }
+ ],
+ "0x3603": [],
+ "0x4100": [
+  {
+   "id": "0x4101",
+   "name": "YG_MSG_PSELECTRESULT",
+   "fmt": [
+    "s32",
+    "u32",
+    "u32",
+    "u16",
+    "u32",
+    "u32",
+    "u32",
+    "u8",
+    "u32",
+    "u32",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u32",
+    "u16",
+    "u16",
+    "u32",
+    "u32",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u32",
+    "u32",
+    "u32",
+    "u32",
+    "u32",
+    "u32",
+    "u16",
+    "u16",
+    "u16",
+    "s32",
+    "u16",
+    "u16",
+    "u16"
+   ]
+  }
+ ],
+ "0x4150": [
+  {
+   "id": "0x4160",
+   "name": null,
+   "fmt": [
+    "s32",
+    "u32",
+    "bytes16",
+    "u8",
+    "u32",
+    "u32",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u32",
+    "u16",
+    "u16",
+    "u32",
+    "u32",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u16",
+    "u32",
+    "u32",
+    "u32",
+    "u32",
+    "u32",
+    "u32",
+    "u16",
+    "u16",
+    "u16",
+    "s32",
+    "u16",
+    "u16",
+    "u16",
+    "u32",
+    "u16"
+   ]
+  }
+ ],
+ "0x4170": [
+  {
+   "id": "0x4171",
+   "name": null,
+   "fmt": [
+    "s32"
+   ]
+  }
+ ],
+ "0x4172": [
+  {
+   "id": "0x4173",
+   "name": null,
+   "fmt": [
+    "s32"
+   ]
+  }
+ ],
+ "0x4174": [
+  {
+   "id": "0x4175",
+   "name": null,
+   "fmt": [
+    "s32"
+   ]
+  }
+ ],
+ "0x4200": [
+  {
+   "id": "0x4201",
+   "name": "YG_MSG_BLOCKLIST",
+   "fmt": [
+    "u16"
+   ]
+  }
+ ],
+ "0x4202": [
+  {
+   "id": "0x4203",
+   "name": "YG_MSG_ENTERBLOCKRESULT",
+   "fmt": [
+    "s32",
+    "u8",
+    "u8",
+    "u8"
+   ]
+  }
+ ],
+ "0x4210": [
+  {
+   "id": "0x4211",
+   "name": "YG_MSG_BLOCKPLAYERLISTSTART",
+   "fmt": [
+    "s32"
+   ]
+  },
+  {
+   "id": "0x4213",
+   "name": "YG_MSG_BLOCKPLAYERLISTEND",
+   "fmt": []
+  }
+ ],
+ "0x4214": [
+  {
+   "id": "0x4215",
+   "name": "YG_MSG_BLOCKPLAYERLIST2_START",
+   "fmt": [
+    "s32"
+   ]
+  },
+  {
+   "id": "0x4217",
+   "name": "YG_MSG_BLOCKPLAYERLIST2_END",
+   "fmt": []
+  }
+ ],
+ "0x4218": [
+  {
+   "id": "0x4219",
+   "name": "YG_MSG_BLOCKPLAYERLIST3_START",
+   "fmt": [
+    "s32"
+   ]
+  },
+  {
+   "id": "0x421b",
+   "name": "YG_MSG_BLOCKPLAYERLIST3_END",
+   "fmt": []
+  }
+ ],
+ "0x421c": [
+  {
+   "id": "0x421d",
+   "name": "YG_MSG_BLOCKPLAYERLIST4_START",
+   "fmt": [
+    "s32"
+   ]
+  },
+  {
+   "id": "0x421f",
+   "name": "YG_MSG_BLOCKPLAYERLIST4_END",
+   "fmt": []
+  }
+ ],
+ "0x4221": [
+  {
+   "id": "0x4222",
+   "name": "YG_MSG_BLOCKPLAYERLIST5_START",
+   "fmt": [
+    "s32"
+   ]
+  },
+  {
+   "id": "0x4224",
+   "name": "YG_MSG_BLOCKPLAYERLIST5_END",
+   "fmt": []
+  }
+ ],
+ "0x4230": [
+  {
+   "id": "0x421d",
+   "name": "YG_MSG_BLOCKPLAYERLIST4_START",
+   "fmt": [
+    "s32"
+   ]
+  },
+  {
+   "id": "0x421f",
+   "name": "YG_MSG_BLOCKPLAYERLIST4_END",
+   "fmt": []
+  }
+ ],
+ "0x4280": [
+  {
+   "id": "0x4282",
+   "name": "YG_MSG_DUELROOMLISTSTART",
+   "fmt": [
+    "s32"
+   ]
+  },
+  {
+   "id": "0x4286",
+   "name": "YG_MSG_DUELROOMLISTEND",
+   "fmt": []
+  }
+ ],
+ "0x4288": [
+  {
+   "id": "0x428a",
+   "name": "YG_MSG_CREATEROOMRESULT",
+   "fmt": [
+    "s32"
+   ]
+  }
+ ],
+ "0x4290": [
+  {
+   "id": "0x4292",
+   "name": "YG_MSG_DELETEROOMRESULT",
+   "fmt": [
+    "s32"
+   ]
+  }
+ ],
+ "0x42a0": [
+  {
+   "id": "0x42a2",
+   "name": "YG_MSG_RESETAUTOWAITRESULT",
+   "fmt": [
+    "s32"
+   ]
+  }
+ ],
+ "0x4300": [
+  {
+   "id": "0x4301",
+   "name": "YG_MSG_REQMATCHRESULT",
+   "fmt": [
+    "s32"
+   ]
+  }
+ ],
+ "0x4303": [],
+ "0x4304": [
+  {
+   "id": "0x4305",
+   "name": "YG_MSG_CANCELREQMATCH",
+   "fmt": []
+  }
+ ],
+ "0x430a": [],
+ "0x4320": [
+  {
+   "id": "0x4321",
+   "name": "YG_MSG_REQWATCHRESULT",
+   "fmt": [
+    "s32",
+    "bytes15",
+    "u16"
+   ]
+  }
+ ],
+ "0x4400": [],
+ "0x4410": [],
+ "0x4424": [],
+ "0x4428": [],
+ "0x4500": [],
+ "0x4510": [
+  {
+   "id": "0x4511",
+   "name": "YG_MSG_REQFRIENDRESULT",
+   "fmt": [
+    "s32"
+   ]
+  }
+ ],
+ "0x4513": [],
+ "0x4530": [
+  {
+   "id": "0x4531",
+   "name": "YG_MSG_ADDBLACKRESULT",
+   "fmt": [
+    "s32"
+   ]
+  }
+ ],
+ "0x4540": [
+  {
+   "id": "0x4541",
+   "name": "YG_MSG_DELBLACKRESULT",
+   "fmt": [
+    "s32"
+   ]
+  }
+ ],
+ "0x4550": [
+  {
+   "id": "0x4551",
+   "name": "YG_MSG_TEAMCREATERESULT",
+   "fmt": [
+    "u32"
+   ]
+  }
+ ],
+ "0x4552": [
+  {
+   "id": "0x4553",
+   "name": "YG_MSG_TEAMDISBANDRESULT",
+   "fmt": [
+    "s32"
+   ]
+  }
+ ],
+ "0x4554": [],
+ "0x4556": [],
+ "0x4558": [
+  {
+   "id": "0x4559",
+   "name": "YG_MSG_TEAMLISTRESULT",
+   "fmt": []
+  }
+ ],
+ "0x4568": [],
+ "0x4569": [],
+ "0x4600": [
+  {
+   "id": "0x4601",
+   "name": "YG_MSG_SENDMAILRESULT",
+   "fmt": [
+    "s32"
+   ]
+  }
+ ],
+ "0x4610": [
+  {
+   "id": "0x4611",
+   "name": "YG_MSG_RCVMAILLISTSTART",
+   "fmt": [
+    "s32"
+   ]
+  },
+  {
+   "id": "0x4613",
+   "name": "YG_MSG_RCVMAILLISTEND",
+   "fmt": []
+  }
+ ],
+ "0x4620": [
+  {
+   "id": "0x4621",
+   "name": "YG_MSG_GETMAILCOUNTRESULT",
+   "fmt": [
+    "s32"
+   ]
+  }
+ ],
+ "0x4802": [
+  {
+   "id": "0x4803",
+   "name": "YG_MSG_SELECTCARDPACKRESULT",
+   "fmt": [
+    "s32"
+   ]
+  }
+ ],
+ "0x4901": [],
+ "0x4902": [
+  {
+   "id": "0x4903",
+   "name": "YG_MSG_PURCHASE_PACK_OPEN_RESULT",
+   "fmt": [
+    "s32",
+    "u32"
+   ]
+  }
+ ],
+ "0x4904": [
+  {
+   "id": "0x4905",
+   "name": "YG_MSG_PRESENT_PACK_OPEN_RESULT",
+   "fmt": [
+    "s32"
+   ]
+  }
+ ],
+ "0x4910": [],
+ "0x4915": [
+  {
+   "id": "0x4803",
+   "name": "YG_MSG_SELECTCARDPACKRESULT",
+   "fmt": [
+    "s32"
+   ]
+  }
+ ],
+ "0x5100": [
+  {
+   "id": "0x5100",
+   "name": "YG_MSG_TOUR_INFO",
+   "fmt": [
+    "u32",
+    "bytes100",
+    "u32",
+    "s32",
+    "s32",
+    "u32",
+    "u32",
+    "u32"
+   ]
+  }
+ ],
+ "0x5107": [
+  {
+   "id": "0x5110",
+   "name": "YG_MSG_TOUR_ENTRY_END",
+   "fmt": []
+  }
+ ],
+ "0x5111": [
+  {
+   "id": "0x5111",
+   "name": "YG_MSG_TOUR_LIST",
+   "fmt": [
+    "u32",
+    "u32",
+    "u32",
+    "u32",
+    "u8"
+   ]
+  }
+ ],
+ "0x5112": [
+  {
+   "id": "0x5112",
+   "name": "YG_MSG_TOUR_ENDRESULT",
+   "fmt": [
+    "u32",
+    "bytes100",
+    "u32",
+    "u32",
+    "u32",
+    "bytes16",
+    "u32",
+    "bytes16"
+   ]
+  }
+ ],
+ "0x5113": [
+  {
+   "id": "0x5113",
+   "name": "YG_MSG_TOUR_TIMER",
+   "fmt": [
+    "u32"
+   ]
+  }
+ ],
+ "0x5114": [
+  {
+   "id": "0x5114",
+   "name": "YG_MSG_TOUR_PCOUNTER",
+   "fmt": [
+    "u32",
+    "u32",
+    "u32",
+    "u32",
+    "u32"
+   ]
+  }
+ ],
+ "0x5115": [
+  {
+   "id": "0x5115",
+   "name": "YG_MSG_TOUR_STATUS",
+   "fmt": [
+    "u32",
+    "u32",
+    "u32",
+    "u32",
+    "u32",
+    "u32",
+    "u8"
+   ]
+  }
+ ],
+ "0x5200": [],
+ "0x5202": [],
+ "0x5204": [
+  {
+   "id": "0x5205",
+   "name": "YG_MSG_ITEMGET_RESULT",
+   "fmt": [
+    "u16",
+    "u16",
+    "u16",
+    "u16"
+   ]
+  }
+ ],
+ "0x5208": [
+  {
+   "id": "0x5214",
+   "name": "YG_MSG_SHOPLISTNOTICE",
+   "fmt": []
+  }
+ ],
+ "0x5210": [
+  {
+   "id": "0x5216",
+   "name": "YG_MSG_PURCHASE_SHOP_ITEM_RESULT_END",
+   "fmt": []
+  }
+ ],
+ "0x5320": [
+  {
+   "id": "0x5340",
+   "name": null,
+   "fmt": [
+    "s32",
+    "u32",
+    "bytes16",
+    "u16",
+    "u16",
+    "u8"
+   ]
+  }
+ ],
+ "0x5400": [
+  {
+   "id": "0x5401",
+   "name": "YG_MSG_SD_GET_RESULT",
+   "fmt": [
+    "s32"
+   ]
+  }
+ ],
+ "0x7000": [
+  {
+   "id": "0x7120",
+   "name": "YG_MSG_TRADELASTCONFIRMRESULT",
+   "fmt": [
+    "u8"
+   ]
+  }
+ ],
+ "0x8101": [
+  {
+   "id": "0x8102",
+   "name": "YG_MSG_DPAUTHRESULT",
+   "fmt": [
+    "s32",
+    "u16",
+    "u8",
+    "u8",
+    "u16"
+   ]
+  }
+ ],
+ "0x8203": [
+  {
+   "id": "0x8204",
+   "name": "YG_MSG_USBDPAUTHRESULT",
+   "fmt": [
+    "s32",
+    "u8",
+    "u16",
+    "u8",
+    "u8"
+   ]
+  }
+ ],
+ "0x8301": [
+  {
+   "id": "0x8302",
+   "name": "YG_MSG_TPPRESENTINFORESULT",
+   "fmt": [
+    "u16"
+   ]
+  }
+ ],
+ "0x8303": [
+  {
+   "id": "0x8304",
+   "name": "YG_MSG_TPCARDGETRESULT",
+   "fmt": [
+    "s32",
+    "u8",
+    "u16"
+   ]
+  }
+ ],
+ "0x8401": [
+  {
+   "id": "0x8304",
+   "name": "YG_MSG_TPCARDGETRESULT",
+   "fmt": [
+    "s32",
+    "u8",
+    "u16"
+   ]
+  }
+ ]
+}

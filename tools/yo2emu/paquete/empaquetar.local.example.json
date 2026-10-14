@@ -1,0 +1,11 @@
+{
+ "_": "Copy to empaquetar.local.json (never commit it) and fill in your own data. sanear = [text, replacement] applied in this order to the .py files copied into the package (e.g. your character name in comments, your development account id); escaneo = regular expressions (case-insensitive) that stop the build if they appear in the package text (e.g. your Windows user folder, your names). The IP scan is always on.",
+ "sanear": [
+  ["MyCharacterName", "Player1"],
+  ["0123456789abcdef", "0000000000000000"]
+ ],
+ "escaneo": [
+  "C:[\\\\/]+Users[\\\\/]+YourWindowsUser",
+  "MyCharacterName"
+ ]
+}

@@ -1,0 +1,34 @@
+# Binarios grandes y descargas: no van al repo
+frida-inject.exe
+frida-inject-*.xz
+dist/*.exe
+# La clave de Tailscale NUNCA va al repo
+yo2-clave.txt
+dist/yo2-clave.txt
+# tor.exe del Tor Expert Bundle (se incrusta al compilar) y descargas
+sala/tor.exe
+_descargas/
+*.bak-p2p
+# Codigos de sala: son la llave de la sala
+yo2-sala.txt
+dist/yo2-sala.txt
+# Icono sacado de yo2.exe (es de Konami): no va al repo
+_icono/
+*.syso
+# Copias de seguridad de cada cambio (codigo viejo): no van al repo
+*.bak-*
+# Herramienta de firma compilada y firmas de cada build (se regeneran)
+firmar.exe
+dist/*.firma
+# Claves: la del editor vive SOLO en %LOCALAPPDATA%\YO2Online\firma; por si alguien la copia aqui por error
+*.key
+# IP del anfitrion en Tailscale (modo antiguo): dato personal
+yo2-servidor.txt
+dist/yo2-servidor.txt
+# Ventana nueva (Wails): exe y firmas se regeneran; frontend/wailsjs y build/bin tambien
+dist-app/*.exe
+dist-app/*.firma
+app/build/bin/
+app/frontend/wailsjs/
+# Lista de nodos firmada a mano con firmar -red (empaquetar.py la deja en paquete/_build): se regenera
+red/*.firmada.json

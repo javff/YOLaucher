@@ -1,0 +1,10 @@
+This folder holds yo2net-version.dll (the project's own DLL that replaces Frida on the player's PC).
+It is built by ..\dll\build_dll.ps1 from ..\dll\yo2net.c; juego\dll.go embeds it with go:embed.
+If it is missing, the launcher still builds and opens the game with Frida (fallback).
+This file exists so that go:embed has something to embed even when the DLL is missing.
+
+Built with w64devkit x86 (gcc 16.2.0, i686-w64-mingw32): PE32, 17 exports identical (name and ordinal)
+to those of SysWOW64\version.dll, imports only KERNEL32, ~18 KB. Rebuild it with build_dll.ps1
+(-Compilador, YO2_CC, W64DEVKIT or the PATH) every time yo2net.c changes, and then run app\build.ps1 to embed it.
+Tested with a copy of the client against a test run.py (offset 5900): gate, login, character creation and My Room
+without Frida; without YO2ONLINE_NET it writes no registry entry and patches nothing.

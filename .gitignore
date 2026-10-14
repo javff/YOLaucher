@@ -1,2 +1,52 @@
-*.zip
-*.exe
+# Dependencies and build output (all regenerated)
+node_modules/
+__pycache__/
+*.pyc
+tools/yo2emu/paquete/_build/
+tools/yo2emu/paquete/_descargas/
+tools/yo2emu/_descargas/
+tools/yo2emu/launcher/dist-app/
+tools/yo2emu/launcher/app/build/bin/
+tools/yo2emu/launcher/app/frontend/wailsjs/
+tools/yo2emu/paridad/_out/
+tools/yo2emu/paridad/_fixtures/
+
+# Never commit anything from the original game (see README.md: bring your own client)
+_original/
+tools/yo2emu/launcher/app/frontend/dist/img/game/
+tools/yo2emu/research/ia/cards_yo2.csv
+tools/yo2emu/research/ia/npc_decks.json
+tools/yo2emu/research/ia/npc_profiles.json
+tools/yo2emu/research/ia/npc_fuki.json
+tools/yo2emu/research/persistencia/valid_cards.json
+tools/yo2emu/research/persistencia/titles.json
+tools/yo2emu/duelcore/out/
+
+# Third-party data fetched by hand (BUILDING.md)
+_vendor/*
+!_vendor/README.md
+
+# Third-party binaries embedded at build time (fetch_deps.ps1)
+tools/yo2emu/launcher/juego/frida-inject.exe
+tools/yo2emu/launcher/juego/frida-inject-*.xz
+tools/yo2emu/launcher/sala/tor.exe
+tools/yo2emu/launcher/_descargas/
+tools/yo2emu/launcher/juego/dllbin/*.dll
+
+# Live server data, logs and secrets (never commit)
+tools/yo2emu/state.json*
+tools/yo2emu/admin_*.json
+tools/yo2emu/admin_*.log
+tools/yo2emu/admin_eventos/
+tools/yo2emu/repeticiones/
+tools/yo2emu/logs/
+*.sqlite
+*.sqlite-*
+*.key
+*.firma
+consola_*.txt
+gestion_*.txt
+tools/yo2emu/launcher/firmar.exe
+tools/yo2emu/paquete/empaquetar.local.json
+*.bak
+*.bak-*

@@ -1,0 +1,57 @@
+{
+ "_doc": "Máscaras a mano de la paridad (además de las automáticas de la base). Cada una con su motivo. mascaras: {id, escenario?, puerto?, dir? (rx|tx), bytes: [desde, hasta) | todo: true, motivo}. ids_azar: id -> motivo de que su contenido sea azar o reloj (solo documenta: quita el aviso MIRAR de la tabla de % enmascarado). repetidos: {id, escenario?, cli?, puerto?, dir?, motivo}: en esas conexiones, varios mensajes SEGUIDOS con ese id (y los mismos bytes) cuentan como uno al comparar (sondeos cuyo número depende del reloj).",
+ "mascaras": [
+  {
+   "id": "0x6010",
+   "dir": "rx",
+   "bytes": [
+    7,
+    21
+   ],
+   "motivo": "DUELLOG_HEADER: título de la repetición = strftime('pvp%Y%m%d%H%M%S') (research/repeticion/duellog.py): hora del duelo"
+  },
+  {
+   "id": "0x6010",
+   "dir": "rx",
+   "bytes": [
+    22,
+    26
+   ],
+   "motivo": "DUELLOG_HEADER: n bytes del blob RLE, que lleva dentro la fecha (when): su compresión cambia con la hora"
+  },
+  {
+   "id": "0x6010",
+   "dir": "rx",
+   "bytes": [
+    74,
+    78
+   ],
+   "motivo": "DUELLOG_HEADER: when = time.time() del fin del duelo"
+  },
+  {
+   "id": "0x6461",
+   "dir": "rx",
+   "bytes": [
+    1,
+    5
+   ],
+   "motivo": "CLK_SHOW (ocg_duel._clk_show, límite de tiempo 94c820da): segundos que quedan del reloj de turno (s32 BE en los bytes 1-4) = reloj de pared; entre pasadas sale 179 o 180 según en qué milisegundo cae la decisión"
+  }
+ ],
+ "ids_azar": {
+  "0x4800": "CARDPACKLISTNOTICE tras un duelo: cuántos sobres se ofrecen (1-10) es azar del servidor; con la semilla fija de la paridad sale siempre igual",
+  "0x4803": "SELECTCARDPACKRESULT: las 5 cartas del sobre salen al azar (shop_purchase); con la semilla fija de la paridad salen siempre igual",
+  "0x6010": "DUELLOG_HEADER: hora en el título, en when y en el tamaño del blob (máscaras a mano)",
+  "0x6461": "CLK_SHOW: segundos restantes del reloj de turno (máscara a mano)"
+ },
+ "repetidos": [
+  {
+   "id": "0x6702",
+   "escenario": "pvp",
+   "cli": "C",
+   "puerto": 5760,
+   "dir": "tx",
+   "motivo": "espectador (fake_client.watch_loop, como FUN_00720fd0): pide con 0x6702 cada vez que se queda sin 0x6202 (0,05 s sin nada) o cada 10 s; cuántas veces depende de cómo lleguen los mensajes en el tiempo (la base tenía 90-92 y una pasada con 90 justos daba DISTINTO). Lo que recibe (rx) no cambia."
+  }
+ ]
+}

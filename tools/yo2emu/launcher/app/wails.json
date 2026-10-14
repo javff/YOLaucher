@@ -1,0 +1,11 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "YO2OnlineLauncher",
+  "outputfilename": "YO2OnlineLauncher",
+  "frontend:install": "",
+  "frontend:build": "",
+  "frontend:dir": "frontend",
+  "assetdir": "frontend/dist",
+  "author": {"name": "YO2"},
+  "info": {"companyName": "YO2", "productName": "Yu-Gi-Oh! Online 2 Launcher", "productVersion": "1.0.0", "copyright": "", "comments": "Lanzador de Yu-Gi-Oh! Online 2"}
+}

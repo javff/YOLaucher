@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en" class="gfx">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'">
+<title>Yu-Gi-Oh! Online 2 Launcher</title>
+<link rel="icon" href="img/favicon_32.png">
+<meta name="color-scheme" content="light dark">
+<script src="tema.js"></script>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="juego.css">
+</head>
+<body>
+<!-- Iconos (sin emojis): se usan con <svg class="i"><use href="#i-nombre"/></svg>; heredan color y tamaño (1em) del texto -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3.2 3.4 3.2 14.6 0 18M12 3c-3.2 3.4-3.2 14.6 0 18"/></symbol>
+  <symbol id="i-host" viewBox="0 0 24 24"><rect x="4" y="3.5" width="16" height="7" rx="1.8"/><rect x="4" y="13.5" width="16" height="7" rx="1.8"/><path d="M8 7h.01M8 17h.01M12 7h4M12 17h4"/></symbol>
+  <symbol id="i-news" viewBox="0 0 24 24"><path d="M3.5 10v4h3l7.5 4.5v-13L6.5 10h-3z"/><path d="M17 9.2a4 4 0 0 1 0 5.6M19.6 6.6a8 8 0 0 1 0 10.8"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.6" stroke-width="3.4" stroke-dasharray="2.95 3" stroke-linecap="butt"/><circle cx="12" cy="12" r="5.6"/><circle cx="12" cy="12" r="2.2"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4.2"/><path d="M10.6 12.4 20 3M16.5 6.5l3 3M14 9l2.2 2.2"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M12 2.6l2.85 5.95 6.55.84-4.8 4.53 1.22 6.48L12 17.28 6.18 20.4l1.22-6.48-4.8-4.53 6.55-.84z"/></symbol>
+  <symbol id="i-star-o" viewBox="0 0 24 24"><path d="M12 2.6l2.85 5.95 6.55.84-4.8 4.53 1.22 6.48L12 17.28 6.18 20.4l1.22-6.48-4.8-4.53 6.55-.84z"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.35-5.65"/><path d="M20 4v4.6h-4.6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-pc" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8.5 20h7M12 16v4M8 10.5l2.5 2.5L16 7.5"/></symbol>
+  <symbol id="i-cup" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0V4zM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 20h8"/></symbol>
+  <symbol id="i-cards" viewBox="0 0 24 24"><rect x="3" y="6" width="11" height="15" rx="1.8" transform="rotate(-10 8.5 13.5)"/><rect x="10" y="3" width="11" height="15" rx="1.8"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5.5 9.5A1.8 1.8 0 0 0 6 21h12a1.8 1.8 0 0 0 1.5-2.5L14 9V3M7.5 15h9"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.8"/><path d="M16.5 14.2A5.5 5.5 0 0 1 21.5 20"/></symbol>
+  <symbol id="i-unlock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 7.6-1.7"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.2 7.5 9.5 4.3-1.3 7.5-4.9 7.5-9.5V6L12 3z"/><path d="m8.8 12 2.2 2.2 4.2-4.4"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M7 4.8v14.4a1 1 0 0 0 1.5.86l11.6-7.2a1 1 0 0 0 0-1.72L8.5 3.94A1 1 0 0 0 7 4.8z"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.6" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0V8zM12 17v4"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-min" viewBox="0 0 24 24"><path d="M6 12h12"/></symbol>
+  <symbol id="i-max" viewBox="0 0 24 24"><rect x="5.5" y="5.5" width="13" height="13" rx="1"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.5 2.8 19.5h18.4L12 3.5z"/><path d="M12 10v4.4M12 17.2h.01"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="12" rx="2"/><path d="M15.5 8.5V6a2 2 0 0 0-2-2H6.5a2 2 0 0 0-2 2v9.5a2 2 0 0 0 2 2h2"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+  <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M3 3l18 18M10.2 6a9 9 0 0 1 1.8-.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.6 3.4M6.4 7.5A16 16 0 0 0 2.5 12S6 18.5 12 18.5a9 9 0 0 0 3.6-.8M9.9 9.9a2.8 2.8 0 0 0 4.2 3.7"/></symbol>
+</svg>
+
+<div class="win">
+  <div class="title" id="barra">
+    <img src="img/favicon_32.png" alt="">
+    <b>YU-GI-OH! ONLINE 2 LAUNCHER</b><span class="ver" id="ver"></span>
+    <span class="sp"></span>
+    <button class="wb" id="bMin" title="Minimize" aria-label="Minimize"><svg class="i"><use href="#i-min"/></svg></button>
+    <button class="wb" id="bMax" title="Maximize" aria-label="Maximize"><svg class="i"><use href="#i-max"/></svg></button>
+    <button class="wb x" id="bCerrar" title="Close" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button>
+  </div>
+
+  <!-- fondo de reserva: circuitos + emblema en vectorial (con el tema del juego, juego.css, se oculta y se usa el emblema real) -->
+  <svg class="fondo" viewBox="0 0 1160 646" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <pattern id="circ" width="240" height="160" patternUnits="userSpaceOnUse">
+        <g fill="none" stroke="#7cbcf2" stroke-width="1.2" opacity=".45">
+          <path d="M0 30h60l20 20h70l15-15h75"/><path d="M0 110h40l25-25h55l20 20h100"/><path d="M90 160v-30l15-15h45M190 0v25l-15 15h-30"/>
+        </g>
+        <g fill="#7cbcf2" opacity=".55"><circle cx="150" cy="50" r="2.6"/><circle cx="65" cy="85" r="2.6"/><circle cx="105" cy="115" r="2.6"/><circle cx="145" cy="40" r="2"/></g>
+      </pattern>
+      <radialGradient id="fade" cx="50%" cy="55%" r="65%"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".55" stop-color="#fff" stop-opacity=".2"/><stop offset="1" stop-color="#fff" stop-opacity="1"/></radialGradient>
+      <mask id="m"><rect width="1160" height="646" fill="url(#fade)"/></mask>
+      <path id="ring" d="M0,0 m-118,0 a118,118 0 1,1 236,0 a118,118 0 1,1 -236,0"/>
+    </defs>
+    <rect width="1160" height="646" fill="url(#circ)" mask="url(#m)"/>
+    <g transform="translate(560 420)" fill="none" stroke="#5aa6ea" opacity=".22">
+      <circle r="150" stroke-width="3"/><circle r="140" stroke-width="1.5"/>
+      <circle r="96" stroke-width="16"/><circle r="72" stroke-width="2"/>
+      <path d="M-150 0h-60M150 0h60M0 -150v-40M0 150v40" stroke-width="2"/>
+      <text font-family="Rubik" font-weight="700" font-size="17" fill="#5aa6ea" stroke="none" letter-spacing="4"><textPath href="#ring">YU-GI-OH! ONLINE 2 · DUEL NETWORK · RESTORATION ·</textPath></text>
+    </g>
+  </svg>
+
+  <div class="body">
+    <nav aria-label="Menu">
+      <div class="logo"><img src="img/favicon_192.png" alt=""></div>
+      <a class="on" data-v="jugar" tabindex="0" role="button" aria-label="Play"><svg class="i" data-o="mundo"><use href="#i-globe"/></svg><span class="tip">Play</span></a>
+      <a data-v="crear" tabindex="0" role="button" aria-label="Host a server"><svg class="i"><use href="#i-host"/></svg><span class="tip">Host a server</span></a>
+      <a data-v="novedades" tabindex="0" role="button" aria-label="News"><svg class="i"><use href="#i-news"/></svg><span class="tip">News</span></a>
+      <a data-v="ajustes" tabindex="0" role="button" aria-label="Settings"><svg class="i"><use href="#i-gear"/></svg><span class="tip">Settings</span></a>
+      <span class="sp"></span>
+      <div class="leds" id="estado">
+        <span id="eJuego" tabindex="0"><i class="led off"></i><span class="tip"><b>Looking for the game…</b><small></small></span></span>
+        <span id="eLanz" tabindex="0"><i class="led"></i><span class="tip"><b>Launcher</b><small></small></span></span>
+        <span id="eConn" tabindex="0" hidden><i class="led"></i><span class="tip"><b></b><small></small></span></span>
+        <span id="eSrv" tabindex="0"><i class="led off"></i><span class="tip"><b>Not hosting</b><small></small></span></span>
+      </div>
+    </nav>
+    <main>
+      <!-- JUGAR -->
+      <section class="vista on" id="v-jugar">
+        <div class="cab"><div><h1 class="cinta"><span class="g1"></span><span class="tx">Servers</span><span class="g2"></span><span class="g3"></span></h1>
+          <p>Pick a server and press Join. The game opens by itself.</p></div><span class="sp"></span>
+          <button class="b claro" id="bDireccion" title="Connect straight to the host's IP or name, without the public network"><svg class="i"><use href="#i-plug"/></svg>Join by address</button>
+          <button class="b" id="bCodigo"><svg class="i k"><use href="#i-key"/></svg>Join with code</button></div>
+        <div class="barra-con" id="conn" hidden>
+          <i class="led"></i><span class="cn"><span>Connected to</span> <b id="connNom"></b> <small id="connDet"></small></span><span class="sp"></span>
+          <button class="b claro mini" id="bReabrir"><svg class="i"><use href="#i-play"/></svg>Open the game</button>
+          <button class="b rojo mini" id="bDesconectar"><svg class="i"><use href="#i-plug"/></svg>Disconnect</button>
+        </div>
+        <div class="filtros">
+          <label class="buscar"><svg class="i"><use href="#i-search"/></svg><input id="fTexto" placeholder="Search servers…" aria-label="Search servers" maxlength="60" autocomplete="off" spellcheck="false"></label>
+          <button class="chip" data-reglas="" aria-pressed="true">All</button>
+          <button class="chip" data-reglas="vanilla" aria-pressed="false">Vanilla 1:1</button>
+          <button class="chip" data-reglas="mejorado" aria-pressed="false">Enhanced</button>
+          <button class="chip" id="fFav" aria-pressed="false"><svg class="i star"><use href="#i-star"/></svg>Favorites</button>
+          <button class="chip" id="fLlenos" aria-pressed="false">Hide full</button>
+          <button class="chip" id="fSinClave" aria-pressed="false" title="Only servers without a password" aria-label="No password"><svg class="i"><use href="#i-unlock"/></svg><span class="ct">No password</span></button>
+        </div>
+        <div class="split">
+          <div class="lista" id="lista" role="list"></div>
+          <aside class="det" id="det"></aside>
+        </div>
+        <div class="barra-est">
+          <span class="rd" id="bRed"><i class="led off"></i>P2P network not started</span>
+          <span class="bs" id="bBusca"></span>
+          <a class="av-juego" id="bJuego" role="button" tabindex="0" hidden><svg class="i"><use href="#i-alert"/></svg><span></span></a>
+          <span class="sp"></span>
+          <button class="rf" id="bRefrescar"><svg class="i"><use href="#i-refresh"/></svg>Refresh</button>
+        </div>
+      </section>
+
+      <!-- CREAR -->
+      <section class="vista" id="v-crear">
+        <div class="cab"><div><h1 class="cinta"><span class="g1"></span><span class="tx">Host a server</span><span class="g2"></span><span class="g3"></span></h1>
+          <p>Your PC becomes the server. No router setup needed.</p></div><span class="sp"></span>
+          <!-- pestañas: solo mientras corre uno de «My servers» (Manage es el que está en marcha) -->
+          <div class="seg" id="crearTabs" role="tablist" aria-label="Server sections" hidden>
+            <button class="chip" id="tServidor" role="tab" aria-pressed="true"><svg class="i"><use href="#i-host"/></svg>My servers</button>
+            <button class="chip" id="tGestion" role="tab" aria-pressed="false"><svg class="i"><use href="#i-shield"/></svg>Manage</button>
+          </div></div>
+        <div class="cols" id="crearCols">
+          <!-- MY SERVERS: los servidores guardados en este PC, cada uno con su mundo (solo uno en marcha a la vez) -->
+          <div class="panel form" id="misPanel">
+            <h3><svg class="i"><use href="#i-host"/></svg>My servers</h3>
+            <div class="pc">
+              <div class="mis-cab"><small class="gnota">Each server has its own world: accounts, characters, bans and room code. One runs at a time.</small>
+                <span class="sp"></span><button class="b oro mini" id="bNuevo"><svg class="i"><use href="#i-host"/></svg>New server</button></div>
+              <div class="glista" id="misLista" role="list"></div>
+            </div>
+          </div>
+          <!-- New server / Edit server -->
+          <div class="panel form" id="form" hidden>
+            <h3><svg class="i"><use href="#i-host"/></svg><span id="formTit">New server</span></h3>
+            <div class="pc">
+              <div class="dos-c">
+                <div><label class="lbl" for="sNombre">Server name</label><input class="campo" id="sNombre" maxlength="40" autocomplete="off"></div>
+                <div><label class="lbl" for="sMax">Max players</label><select class="campo" id="sMax"><option>8</option><option>16</option><option>30</option><option>50</option><option>100</option><option>200</option></select></div>
+              </div>
+              <div><label class="lbl" for="sDesc">Description <small>(everyone sees it in the list)</small></label><input class="campo" id="sDesc" maxlength="200" autocomplete="off"></div>
+              <div><span class="lbl">Who can join</span>
+                <div class="opc tres" id="sVis" role="radiogroup" aria-label="Who can join">
+                  <div data-v="publico" role="radio" tabindex="0"><span class="oi"><svg class="i"><use href="#i-globe"/></svg></span><span><b>Public</b><small>In everyone's list</small></span></div>
+                  <div data-v="clave" role="radio" tabindex="0"><span class="oi"><svg class="i"><use href="#i-key"/></svg></span><span><b>Password</b><small>In the list with a lock</small></span></div>
+                  <div data-v="oculto" role="radio" tabindex="0"><span class="oi"><svg class="i"><use href="#i-eye-off"/></svg></span><span><b>Hidden</b><small>Only with the room code</small></span></div>
+                </div>
+                <div class="clave-srv" id="sClaveBox" hidden>
+                  <label class="lbl" for="sClave">Server password</label>
+                  <div class="campo-clave"><input class="campo" id="sClave" type="password" maxlength="64" autocomplete="new-password" spellcheck="false" aria-describedby="sClaveAyuda">
+                    <button class="b claro mini ver-clave" id="sClaveVer" type="button" aria-pressed="false" aria-controls="sClave"><svg class="i"><use href="#i-eye"/></svg><span>Show</span></button></div>
+                  <small class="nota-campo" id="sClaveAyuda">Players type it when they press Join. Your room code still joins without it.</small>
+                </div></div>
+              <div><span class="lbl">Rules</span>
+                <small class="nota-campo reglas-fijas" id="sReglasNota" aria-live="polite"></small>
+                <div class="opc" id="sReglas" role="radiogroup" aria-label="Rules" aria-describedby="sReglasNota">
+                  <div data-v="vanilla" role="radio" tabindex="0"><span class="oi"><svg class="i"><use href="#i-shield"/></svg></span><span><b>Vanilla 1:1</b><small>Same as Konami's 2008 game</small></span></div>
+                  <div data-v="mejorado" role="radio" tabindex="0"><span class="oi"><svg class="i"><use href="#i-spark"/></svg></span><span><b>Enhanced</b><small>With the optional improvements</small></span></div>
+                </div></div>
+              <div class="dos-c">
+                <div><label class="lbl" for="sCuentas">Accounts</label><select class="campo" id="sCuentas" aria-describedby="sCuentasAyuda"><option value="libre">Open registration</option><option value="cerradas">Only accounts I create (in Manage)</option></select></div>
+                <small class="nota-campo" id="sCuentasAyuda">Open: anyone signs up from the game's login screen. Otherwise only the accounts you create in Manage can log in.</small>
+              </div>
+              <div class="dos-c">
+                <div><label class="lbl" for="sNivel">Starting level</label><select class="campo" id="sNivel" aria-describedby="sNivelAyuda"><option value="1">1 (like the original)</option><option value="2">2</option><option value="5">5</option><option value="10">10</option></select></div>
+                <small class="nota-campo" id="sNivelAyuda">Level 1 players can only enter beginner rooms (like the original game). Pick 2+ so new players can join everyone.</small>
+              </div>
+              <div class="dos-c">
+                <div><label class="lbl" for="sDP">Duelpass points for new players</label><select class="campo" id="sDP" aria-describedby="sDPAyuda"><option value="10">10 (like the original)</option><option value="100">100</option><option value="500">500</option><option value="1000">1000</option></select></div>
+                <small class="nota-campo" id="sDPAyuda">Each duel costs 1 point (a match needs 3 to start), like the original. More points = more duels before they run out.</small>
+              </div>
+              <div class="fila-tog"><button class="tog" id="sGratis" role="switch" aria-checked="false" aria-labelledby="sGratisLbl" aria-describedby="sGratisAyuda"></button>
+                <div><span class="lbl" id="sGratisLbl">Free duels (no Duelpass cost)</span>
+                  <small class="nota-campo" id="sGratisAyuda">Not in the original game. Duels don't spend points, and every new character gets the starting points.</small></div></div>
+              <div class="err" id="sErr" hidden></div>
+            </div>
+            <div class="form-pie"><span class="sp"></span><button class="b claro mini" id="fCancelar">Cancel</button>
+              <button class="b oro mini" id="fGuardar"><svg class="i"><use href="#i-check"/></svg><span id="fGuardarTxt">Create server</span></button></div>
+          </div>
+          <div class="panel vivo"><h3><svg class="i"><use href="#i-pc"/></svg><span id="vivoTit">Your server</span></h3><div class="pc" id="vivo"></div>
+            <div class="vivo-pie" id="vivoPie" hidden></div></div>
+        </div>
+        <!-- MANAGE (solo con el servidor propio en marcha): jugadores, vetos, cuentas, avisos y copias por la API de gestión de run.py -->
+        <div class="gest" id="gestion" hidden>
+          <div class="panel"><h3><svg class="i"><use href="#i-shield"/></svg>Manage your server</h3>
+            <div class="pc gbody">
+              <div class="gnav" id="gNav" role="tablist" aria-orientation="vertical" aria-label="Manage sections">
+                <button class="chip" data-s="jugadores" role="tab" aria-pressed="true"><svg class="i"><use href="#i-users"/></svg>Players<span class="n" id="gnJug"></span></button>
+                <button class="chip" data-s="vetos" role="tab" aria-pressed="false"><svg class="i"><use href="#i-lock"/></svg>Bans<span class="n" id="gnVet"></span></button>
+                <button class="chip" data-s="cuentas" role="tab" aria-pressed="false"><svg class="i"><use href="#i-key"/></svg>Accounts</button>
+                <button class="chip" data-s="aviso" role="tab" aria-pressed="false"><svg class="i"><use href="#i-news"/></svg>Announcement</button>
+                <button class="chip" data-s="copias" role="tab" aria-pressed="false"><svg class="i"><use href="#i-folder"/></svg>Backup</button>
+              </div>
+              <div class="gmain">
+                <div class="err" id="gErr" hidden></div>
+                <section class="gsec on" id="g-jugadores" role="tabpanel">
+                  <div class="gtit" id="gjTit"></div>
+                  <div class="glista" id="gjLista"></div>
+                </section>
+                <section class="gsec" id="g-vetos" role="tabpanel">
+                  <div class="gtit" id="gvTit"></div>
+                  <div class="glista" id="gvLista"></div>
+                </section>
+                <section class="gsec" id="g-cuentas" role="tabpanel">
+                  <div class="aviso-srv" id="gcHint" hidden></div>
+                  <div class="gform">
+                    <div><label class="lbl" for="gcUsuario">Username</label><input class="campo" id="gcUsuario" maxlength="16" autocomplete="off" spellcheck="false"></div>
+                    <div><label class="lbl" for="gcClave">Password</label><input class="campo" id="gcClave" type="password" maxlength="16" autocomplete="new-password" spellcheck="false"></div>
+                    <button class="b oro mini" id="gcCrear"><svg class="i"><use href="#i-key"/></svg>Create account</button>
+                  </div>
+                  <small class="gnota" id="gcNota"></small>
+                  <div class="gtit" id="gcTit"></div>
+                  <div class="glista" id="gcLista"></div>
+                </section>
+                <section class="gsec" id="g-aviso" role="tabpanel">
+                  <div><label class="lbl" for="gaTexto">Message to everyone online</label>
+                    <textarea class="campo" id="gaTexto" maxlength="200" rows="3" spellcheck="true"></textarea></div>
+                  <div class="gfila-aviso"><small class="gnota" id="gaNota"></small><span class="sp"></span><small class="gcont" id="gaCont"></small>
+                    <button class="b oro mini" id="gaEnviar"><svg class="i"><use href="#i-news"/></svg>Send to everyone</button></div>
+                </section>
+                <section class="gsec" id="g-copias" role="tabpanel">
+                  <div class="gfila-aviso"><small class="gnota" id="gbNota"></small><span class="sp"></span>
+                    <button class="b oro mini" id="gbCopia"><svg class="i"><use href="#i-folder"/></svg>Save a backup now</button></div>
+                  <div class="gtit" id="gbTit"></div>
+                  <div class="glista" id="gbLista"></div>
+                </section>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- NOVEDADES -->
+      <section class="vista" id="v-novedades">
+        <div class="cab"><div><h1 class="cinta"><span class="g1"></span><span class="tx">News</span><span class="g2"></span><span class="g3"></span></h1>
+          <p>The latest from the restoration project.</p></div></div>
+        <div class="scroll" id="novedades"></div>
+      </section>
+
+      <!-- AJUSTES -->
+      <section class="vista" id="v-ajustes">
+        <div class="cab"><div><h1 class="cinta"><span class="g1"></span><span class="tx">Settings</span><span class="g2"></span><span class="g3"></span></h1>
+          <p>Saved on this PC.</p></div></div>
+        <div class="scroll">
+          <div class="panel"><h3><svg class="i"><use href="#i-gear"/></svg>General</h3>
+            <div class="pc aj">
+              <span>Game folder</span>
+              <div class="col-aj"><div class="fila-aj"><input class="campo" id="aCarpeta" aria-label="Game folder" spellcheck="false">
+                <button class="b claro mini" id="aCambiar"><svg class="i"><use href="#i-folder"/></svg>Change…</button>
+                <button class="b claro mini" id="aDetectar"><svg class="i"><use href="#i-search"/></svg>Detect</button></div>
+                <small class="est-aj" id="aCarpetaEst"></small></div>
+              <span>Auto-update</span>
+              <div class="fila-aj"><button class="tog" id="aAct" role="switch" aria-checked="true" aria-label="Auto-update"></button>
+                <small>The launcher updates itself when you join a server that offers a new signed version.</small></div>
+              <span>Hidden servers</span>
+              <div class="fila-aj"><button class="tog" id="aOcultos" role="switch" aria-checked="false" aria-label="Show hidden servers"></button>
+                <small>Show hidden servers in the list</small><span class="sp"></span>
+                <button class="b claro mini" id="aRestaurar"><svg class="i"><use href="#i-eye"/></svg><span id="aRestTxt">Restore hidden</span></button></div>
+              <span>Appearance</span>
+              <div class="fila-aj"><div class="seg" id="aTema" role="radiogroup" aria-label="Appearance">
+                <button class="b claro mini" data-tema="system" role="radio" aria-checked="false">System</button>
+                <button class="b claro mini" data-tema="light" role="radio" aria-checked="false">Light</button>
+                <button class="b claro mini" data-tema="dark" role="radio" aria-checked="false">Dark</button></div>
+                <small id="aTemaTxt">System follows the Windows light/dark setting.</small></div>
+              <span>Diagnostics</span>
+              <div class="fila-aj"><button class="b claro mini" id="aLogs"><svg class="i"><use href="#i-folder"/></svg>Open logs folder</button>
+                <button class="b claro mini" id="aComprobar"><svg class="i"><use href="#i-check"/></svg>Check installation</button></div>
+              <span>Version</span><div><small id="aVersion"></small></div>
+            </div>
+          </div>
+          <!-- RED (NET, 12-10; red.js): puerto fijo del servidor propio y nodos de arranque -->
+          <div class="panel" id="aRed"><h3><svg class="i"><use href="#i-globe"/></svg>Network</h3>
+            <div class="pc aj">
+              <span>Fixed port</span>
+              <div class="col-aj"><div class="fila-aj"><button class="tog" id="aPuertoFijo" role="switch" aria-checked="false" aria-label="Fixed port"></button>
+                <input class="campo puerto" id="aPuerto" type="number" min="1024" max="65535" step="1" inputmode="numeric" aria-label="Port" aria-describedby="aPuertoEst">
+                <small>TCP and UDP</small></div>
+                <small class="est-aj" id="aPuertoEst"></small></div>
+              <span>Bootstrap nodes</span>
+              <div class="col-aj"><small id="aNodos"></small>
+                <small class="est-aj" id="aNodosAyuda"></small></div>
+            </div>
+          </div>
+          <div class="panel informe" id="informe" hidden><h3><svg class="i"><use href="#i-check"/></svg>Installation check</h3><div class="pc" id="informeLista"></div></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- capa de conexión -->
+  <div class="capa" id="capa"><div class="caja" id="cCaja">
+    <h2><svg class="i"><use href="#i-globe"/></svg><span id="cTit"></span></h2>
+    <div class="cc"><p class="sub" id="cSub"></p>
+      <div class="pasos" id="pasos"></div>
+      <details id="cDet" hidden><summary>Technical details</summary><pre id="cTec"></pre></details></div>
+    <div class="pie"><button class="b claro mini" id="cAjustes" hidden>Go to Settings</button><button class="b mini" id="cReintentar" hidden>Retry</button><button class="b claro mini" id="cBtn">Cancel</button></div>
+  </div></div>
+  <!-- entrar con código -->
+  <div class="capa" id="capaCod"><div class="caja">
+    <h2><svg class="i"><use href="#i-key"/></svg>Join with code</h2>
+    <div class="cc"><p class="sub">Paste the code the host gave you. It's the only way into hidden servers, and it skips any password.</p>
+      <input class="campo" id="codigo" style="letter-spacing:.08em" placeholder="YO2-XXXXXX-XXXXXX-…" aria-label="Room code" autocomplete="off" spellcheck="false">
+      <div class="err" id="codErr" hidden></div></div>
+    <div class="pie"><button class="b claro mini" id="codCancelar">Cancel</button><button class="b oro mini" id="codEntrar">Join</button></div>
+  </div></div>
+  <!-- entrar por dirección (NET, 12-10; red.js): IP o nombre del anfitrión + código, contraseña o nada -->
+  <div class="capa" id="capaDir"><div class="caja">
+    <h2><svg class="i"><use href="#i-plug"/></svg>Join by address</h2>
+    <div class="cc"><p class="sub">Connect straight to the host, without the public network. The host shares their address and opens that port on their router.</p>
+      <label class="lbl" for="dirHost">Host address</label>
+      <input class="campo" id="dirHost" placeholder="203.0.113.7:47300 or myhost.example.org:47300" autocomplete="off" spellcheck="false">
+      <span class="lbl" style="margin-top:8px">The server asks for</span>
+      <div class="seg" id="dirModo" role="radiogroup" aria-label="The server asks for">
+        <button class="b claro mini" data-modo="codigo" role="radio" aria-checked="true">Room code</button>
+        <button class="b claro mini" data-modo="clave" role="radio" aria-checked="false">Password</button>
+        <button class="b claro mini" data-modo="publico" role="radio" aria-checked="false" title="Public server: no code or password">Nothing</button></div>
+      <div id="dirSecretoBox" style="margin-top:8px"><label class="lbl" for="dirSecreto" id="dirSecretoLbl">Room code</label>
+        <div class="campo-clave"><input class="campo" id="dirSecreto" autocomplete="off" spellcheck="false">
+          <button class="b claro mini ver-clave" id="dirVer" type="button" aria-pressed="false" aria-controls="dirSecreto" hidden><svg class="i"><use href="#i-eye"/></svg><span>Show</span></button></div></div>
+      <div class="err" id="dirErr" hidden></div></div>
+    <div class="pie"><button class="b claro mini" id="dirCancelar">Cancel</button><button class="b oro mini" id="dirEntrar">Join</button></div>
+  </div></div>
+  <!-- contraseña de un servidor de la lista (modo «Password») -->
+  <div class="capa" id="capaPw"><div class="caja">
+    <h2><svg class="i"><use href="#i-lock"/></svg><span>Password</span></h2>
+    <div class="cc"><p class="sub" id="pwTxt"></p>
+      <label class="lbl" for="pwClave">Password</label>
+      <div class="campo-clave"><input class="campo" id="pwClave" type="password" maxlength="64" autocomplete="off" spellcheck="false">
+        <button class="b claro mini ver-clave" id="pwVer" type="button" aria-pressed="false" aria-controls="pwClave"><svg class="i"><use href="#i-eye"/></svg><span>Show</span></button></div>
+      <div class="fila-tog recordar"><button class="tog" id="pwRecordar" role="switch" aria-checked="false" aria-labelledby="pwRecordarLbl" aria-describedby="pwRecordarAyuda"></button>
+        <div><span class="lbl" id="pwRecordarLbl">Remember password</span>
+          <small class="nota-campo" id="pwRecordarAyuda">Saved encrypted, only for your Windows user on this PC.</small></div></div>
+      <div class="err" id="pwErr" hidden></div></div>
+    <div class="pie"><button class="b claro mini" id="pwNo">Cancel</button><button class="b oro mini" id="pwSi">Join</button></div>
+  </div></div>
+  <!-- vetar a un jugador (con motivo) -->
+  <div class="capa" id="capaVeto"><div class="caja">
+    <h2><svg class="i"><use href="#i-lock"/></svg><span id="vTit"></span></h2>
+    <div class="cc"><p class="sub" id="vTxt"></p>
+      <label class="lbl" for="vMotivo">Reason <small>(optional, only you see it)</small></label>
+      <input class="campo" id="vMotivo" maxlength="200" autocomplete="off">
+      <div class="err" id="vErr" hidden></div></div>
+    <div class="pie"><button class="b claro mini" id="vNo">Cancel</button><button class="b rojo mini" id="vSi">Ban</button></div>
+  </div></div>
+  <!-- contraseña nueva de una cuenta -->
+  <div class="capa" id="capaClave"><div class="caja">
+    <h2><svg class="i"><use href="#i-key"/></svg><span id="pTit"></span></h2>
+    <div class="cc"><p class="sub" id="pTxt"></p>
+      <div id="pUsuarioBox" hidden><label class="lbl" for="pUsuario">Username <small>(this account has none saved)</small></label>
+        <input class="campo" id="pUsuario" maxlength="16" autocomplete="off" spellcheck="false"></div>
+      <label class="lbl" for="pClave" style="margin-top:8px">New password</label>
+      <input class="campo" id="pClave" type="password" maxlength="16" autocomplete="new-password" spellcheck="false">
+      <div class="err" id="pErr" hidden></div></div>
+    <div class="pie"><button class="b claro mini" id="pNo">Cancel</button><button class="b oro mini" id="pSi">Change password</button></div>
+  </div></div>
+  <!-- nivel de un personaje (Manage: Players y Accounts) -->
+  <div class="capa" id="capaNivel"><div class="caja">
+    <h2><svg class="i"><use href="#i-star"/></svg><span id="nTit"></span></h2>
+    <div class="cc"><p class="sub" id="nTxt"></p>
+      <div id="nPjBox" hidden><label class="lbl" for="nPj">Character</label><select class="campo" id="nPj"></select></div>
+      <label class="lbl" for="nNivel" style="margin-top:8px">Level <small>(1 to 99)</small></label>
+      <input class="campo" id="nNivel" type="number" min="1" max="99" step="1" inputmode="numeric" autocomplete="off">
+      <div class="err" id="nErr" hidden></div></div>
+    <div class="pie"><button class="b claro mini" id="nNo">Cancel</button><button class="b oro mini" id="nSi">Set level</button></div>
+  </div></div>
+  <!-- puntos DUELPASS y MP de un personaje (Manage: Players y Accounts) -->
+  <div class="capa" id="capaDP"><div class="caja">
+    <h2><svg class="i"><use href="#i-star"/></svg><span id="dTit"></span></h2>
+    <div class="cc"><p class="sub" id="dTxt"></p>
+      <div id="dPjBox" hidden><label class="lbl" for="dPj">Character</label><select class="campo" id="dPj"></select></div>
+      <p class="sub dp-ahora" id="dAhora"></p>
+      <div class="seg" id="dModo" role="radiogroup" aria-label="Set or add">
+        <button class="b claro mini" data-modo="poner" role="radio" aria-checked="true">Set to</button>
+        <button class="b claro mini" data-modo="sumar" role="radio" aria-checked="false">Add</button></div>
+      <div class="dos-c" style="margin-top:8px">
+        <div><label class="lbl" for="dDP">Duelpass points (DP)</label><input class="campo" id="dDP" type="number" step="1" inputmode="numeric" autocomplete="off"></div>
+        <div><label class="lbl" for="dMP">MP</label><input class="campo" id="dMP" type="number" step="1" inputmode="numeric" autocomplete="off"></div></div>
+      <div class="err" id="dErr" hidden></div></div>
+    <div class="pie"><button class="b claro mini" id="dNo">Cancel</button><button class="b oro mini" id="dSi">Save</button></div>
+  </div></div>
+  <!-- borrar un servidor de «My servers»: hay que escribir su nombre -->
+  <div class="capa" id="capaBorrar"><div class="caja">
+    <h2><svg class="i"><use href="#i-alert"/></svg><span>Delete server</span></h2>
+    <div class="cc"><p class="sub" id="bTxt"></p>
+      <label class="lbl" for="bNombre">Type <b id="bNomTxt"></b> to confirm</label>
+      <input class="campo" id="bNombre" maxlength="40" autocomplete="off" spellcheck="false">
+      <div class="err" id="bErr" hidden></div></div>
+    <div class="pie"><button class="b claro mini" id="bNo">Cancel</button><button class="b rojo mini" id="bSi" disabled>Delete</button></div>
+  </div></div>
+  <!-- confirmación genérica -->
+  <div class="capa" id="capaConf"><div class="caja">
+    <h2><svg class="i"><use href="#i-alert"/></svg><span id="kTit"></span></h2>
+    <div class="cc"><p class="sub" id="kTxt"></p></div>
+    <div class="pie"><button class="b claro mini" id="kNo">Cancel</button><button class="b rojo mini" id="kSi">OK</button></div>
+  </div></div>
+  <!-- trabajando (parar servidor, cerrar) -->
+  <div class="capa" id="capaOcup"><div class="caja">
+    <h2><svg class="i"><use href="#i-host"/></svg><span id="oTit">One moment…</span></h2>
+    <div class="cc"><p class="sub" id="oTxt"></p>
+      <div class="pasos"><div class="paso va"><i></i><div><span id="oPaso">Working…</span></div></div></div></div>
+  </div></div>
+</div>
+<div id="toasts" aria-live="polite"></div>
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+<script src="red.js"></script>
+<script src="actualiza.js"></script>
+</body>
+</html>

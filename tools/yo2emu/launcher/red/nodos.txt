@@ -1,0 +1,14 @@
+# Nodos de arranque (DHT) y relays que el EDITOR firma y reparte dentro del paquete (NOTES-red.md §13).
+# empaquetar.py --firmar firma este fichero (firmar.exe -red) y lo mete como «red» en paquete.json: cada lanzador que se
+# actualice usará esta lista DELANTE de la suya de fábrica (y de la del usuario, %LOCALAPPDATA%\YO2Online\red-nodos.txt).
+#
+# Formato: una línea por nodo, «arranque <multiaddr>» (o «bootstrap») o «relay <multiaddr>», con /p2p/<peer ID> al final.
+# Nunca direcciones /p2p-circuit. Si un día los bootstrap de IPFS cambian o desaparecen, se cambian AQUÍ (p. ej. por nodos
+# de la comunidad con go-libp2p-kad-dht en modo servidor) y se publica un paquete nuevo: se propaga de lanzador en lanzador.
+#
+# Hoy: los mismos que trae go-libp2p-kad-dht v0.42.2 (la lista de fábrica).
+arranque /dnsaddr/bootstrap.libp2p.io/p2p/QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN
+arranque /dnsaddr/bootstrap.libp2p.io/p2p/QmQCU2EcMqAqQPR2i9bChDtGNJchTbq5TbXJJ16u19uLTa
+arranque /dnsaddr/bootstrap.libp2p.io/p2p/QmbLHAnMoJPWSCR5Zhtx6BHJX9KiKNN6tpvbUcqanj75Nb
+arranque /dnsaddr/bootstrap.libp2p.io/p2p/QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt
+arranque /ip4/104.131.131.82/tcp/4001/p2p/QmaCpDMGvV2BGHeYERUEnRQAwe3N8SzbUtfsmvsqQLuvuJ

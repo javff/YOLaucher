@@ -1,0 +1,12 @@
+{
+  "name": "@yo2online/duel-engine",
+  "private": true,
+  "type": "module",
+  "description": "Rules engine glue (ocgcore-wasm) loaded by tools/yo2emu/duelcore/duelcore.mts. Only src/duel/ is used.",
+  "dependencies": {
+    "ocgcore-wasm": "0.1.2"
+  },
+  "devDependencies": {
+    "tsx": "4.23.15"
+  }
+}

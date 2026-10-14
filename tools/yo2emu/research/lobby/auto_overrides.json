@@ -1,0 +1,34 @@
+{
+ "_doc": "Correcciones del agente 3 a auto_replies.json (mismo formato: petición -> [respuestas {id, name, fmt}]). Campo nuevo opcional 'hex' = datos exactos (si falta: ceros, como hoy). Las claves que empiezan por '_' no son peticiones. Fusión y evidencias: NOTES.md, sección 'Fusión con auto_replies'.",
+ "0x3603": [{"id": "0x3604", "name": "YG_MSG_MATCHINGSVR_PLAYERSEARCHRESULT", "fmt": ["u32", "u32"], "why": "gen_auto no emparejaba (filtra por rango de id; 0x3604 va por el distribuidor del lobby). Espera +0x40. u32 ?, u32 n=0 conectados (FUN_006bcdd0). CONFIRMADO"}],
+ "0x4230": [{"id": "0x4231", "name": "YG_MSG_NPCINFOLIST_START", "fmt": ["s32"]}, {"id": "0x4233", "name": "YG_MSG_NPCINFOLIST_END", "fmt": [], "why": "gen_auto emparejaba 0x421d/0x421f por la cadena de log mal copiada del cliente ('REQBLOCKPLAYERLIST4'). El emisor 006cbf10 espera +0x80, que ponen 0x4231/0x4233. run.py ya lo maneja. CONFIRMADO"}],
+ "0x4304": [{"id": "0x4309", "name": "YG_MSG_CANCELREQMATCHRESULT", "fmt": ["s32"], "why": "caso default del distribuidor (CMP EAX,0x4309/JZ 006ac5d5 -> FUN_006bb470): pone +0x2f y el resultado k=19 que lee FUN_006b54b0 (0 = éxito). 0x4305 solo pone el indicador. CONFIRMADO"}],
+ "0x4320": [{"id": "0x4321", "name": "YG_MSG_REQWATCHRESULT", "fmt": ["s32", "bytes15", "u16"], "hex": "000000010000000000000000000000000000000000", "why": "a ceros = éxito con ip vacía y puerto 0 (el cliente intentaría conectar). s32 1 = error (FUN_006d1840 caso 0x16). PROBABLE (el texto del error no está mirado)"}],
+ "0x4500": [{"id": "0x4501", "name": "YG_MSG_GETPIDBYPNAMERESULT", "fmt": ["s32", "u32"], "hex": "0000000100000000", "why": "no tenía respuesta: la tarea esperaba +0x41 para siempre. Caso default (CMP EAX,0x4501 -> FUN_006bcf10). s32 1 = 'no existe' (la escena FUN_00a903f0 mira el pid +0x1b88: 0 = diálogo de no encontrado). CONFIRMADO"}],
+ "0x4550": [{"id": "0x4551", "name": "YG_MSG_TEAMCREATERESULT", "fmt": ["u32"]}, {"id": "0x4566", "name": "YG_MSG_TEAMCREATERESULTEND", "fmt": ["s32"], "why": "0x4551 no pone ningún indicador; el emisor espera +0x84, que pone 0x4566. 0x4551 u32 0 = creado (FUN_006bcfa0: !=0 = 'チーム作成失敗:err=%d'). CONFIRMADO"}],
+ "0x4558": [{"id": "0x4564", "name": "YG_MSG_TEAMLISTRESULT_BEGIN", "fmt": ["s32", "u32", "bytes16", "bytes16"]}, {"id": "0x4565", "name": "YG_MSG_TEAMLISTRESULT_END", "fmt": ["s32"], "why": "gen_auto mandaba 0x4559 (no pone +0x88). BEGIN s32 = nº de miembros (log 'チームリスト開始 チーム名:%s, チーム員数:%d'), END pone +0x88. run.py ya lo maneja pero manda BEGIN de 4 B (el lector pide 40). CONFIRMADO"}],
+ "0x4901": [{"id": "0x4800", "name": "YG_MSG_CARDPACKLISTNOTICE", "fmt": [], "why": "no tenía respuesta. Caso default (CMP EAX,0x4800 -> FUN_006bbe20, bucle de u16 id de pack) pone +0x39, que espera la escena FUN_00850d90 caso 5. Lista vacía. CONFIRMADO"}],
+ "0x4910": [{"id": "0x4803", "name": "YG_MSG_SELECTCARDPACKRESULT", "fmt": ["s32"], "why": "su indicador +0x68 no lo pone nadie; la escena FUN_008444c0 caso 3 espera +0x3a y el resultado k=0x1e (llega = éxito). Sin cartas. CONFIRMADO"}],
+ "0x4915": [{"id": "0x4803", "name": "YG_MSG_SELECTCARDPACKRESULT", "fmt": ["s32"], "why": "igual que hoy (OVERRIDE de gen_auto): FUN_00850d90 caso 0xd espera +0x3a. CONFIRMADO"}],
+ "0x5107": [{"id": "0x5108", "name": "YG_MSG_TOUR_ENTRY_START", "fmt": ["u32", "u32", "u32"]}, {"id": "0x5110", "name": "YG_MSG_TOUR_ENTRY_END", "fmt": [], "why": "cabecera + cierre (END pone +0x70). PROBABLE (escena de torneo no revisada)"}],
+ "0x5208": [{"id": "0x5213", "name": "YG_MSG_SHOPLISTNOTICE(inicio)", "fmt": []}, {"id": "0x5214", "name": "YG_MSG_SHOPLISTNOTICE(fin)", "fmt": [], "why": "por si run.py no lo maneja: inicio + fin (tienda vacía). run.py ya lo hace bien. CONFIRMADO"}],
+ "0x5210": [{"id": "0x5212", "name": "YG_MSG_PURCHASE_SHOP_ITEM_RESULT", "fmt": ["s32"], "hex": "00000001"}, {"id": "0x5211", "name": "YG_MSG_SHOPRESULTEND", "fmt": ["s32"], "hex": "00000001", "why": "gen_auto mandaba 0x5216 (pone +0x83), pero la escena FUN_00afd0d0 espera +0x82 (FUN_006a5b90(0x66)) = 0x5211. Sin artículo: resultado 1. run.py ya lo maneja. CONFIRMADO"}],
+ "0x7000": [],
+ "0x8303": [{"id": "0x8304", "name": "YG_MSG_TPCARDGETRESULT", "fmt": ["s32", "u8", "u16", "u16", "u16", "u16"], "hex": "00000001000000000000000000", "why": "B61: gen_auto mandaba 7 B (s32, u8, u16) pero el lector FUN_006c2880 lee s32, u8 y un do-while de 4 u16 = 13 B; lo que falte se lee de lo que haya en el búfer y cada u16 se registra como carta (FUN_006aefc0). s32 1 = error y ninguna carta, hasta tener premios TP de verdad. CONFIRMADO (formato)"}],
+ "0x8401": [{"id": "0x8402", "name": "YG_MSG_STARTUP_PRESENTGET_RESULT", "fmt": ["s32", "u8", "u16"], "why": "gen_auto mandaba 0x8304 (pone +0x7d); el emisor 006cef30 espera +0x7e, que pone 0x8402 (la escena FUN_00850d90 caso 0x1a lo lee). CONFIRMADO"}],
+ "_sub": {
+  "_doc": "0x7000 es un sobre: u16 subcomando al principio de los datos. gen_auto contestaba 0x7120 a todo (por eso 0x7000 = [] arriba). Respuestas por subcomando:",
+  "0x7000": {
+   "0x7101": [{"id": "0x7133", "name": "YG_MSG_TRADESTARTRESULT", "fmt": []}],
+   "0x7102": [{"id": "0x7103", "name": "YG_MSG_REQTRADERESULT", "fmt": ["s32"], "hex": "fffffe13", "why": "FUN_006d1840 caso 0x2a: error solo si == -493 (cualquier otro = petición aceptada y se quedaría esperando al otro jugador)"}],
+   "0x7105": [{"id": "0x7105", "name": "YG_MSG_TRADEOFFERREPLY", "fmt": ["s32"]}],
+   "0x7108": [{"id": "0x7109", "name": "YG_MSG_CANCELREQTRADENOTICE", "fmt": []}],
+   "0x7112": [{"id": "0x7112", "name": "YG_MSG_TRADEUSEREXIT", "fmt": ["u32"]}],
+   "0x7113": [{"id": "0x7113", "name": "YG_MSG_ADDCARD", "fmt": ["s32"]}],
+   "0x7114": [{"id": "0x7114", "name": "YG_MSG_DELETECARD", "fmt": ["s32"]}],
+   "0x7117": [{"id": "0x7117", "name": "YG_MSG_SETTRADESTATUS", "fmt": ["u8"]}],
+   "0x7119": [{"id": "0x7120", "name": "YG_MSG_TRADELASTCONFIRMRESULT", "fmt": ["u8"]}],
+   "0x7122": [{"id": "0x7122", "name": "YG_MSG_ARRIVETRADECARD", "fmt": []}]
+  }
+ }
+}

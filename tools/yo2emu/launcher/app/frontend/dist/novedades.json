@@ -1,0 +1,43 @@
+[
+  {
+    "fecha": "2026-10-12",
+    "titulo": "My servers",
+    "puntos": [
+      "Keep several servers on one PC, each with its own world: accounts, characters, bans, backups and room code.",
+      "Start, Edit or Delete them from Host a server. Only one runs at a time; starting another asks to stop the current one.",
+      "Rules are chosen when you create a server and stay fixed. Your existing server keeps its data and room code.",
+      "Servers no longer have a language: the list and filters are simpler."
+    ]
+  },
+  {
+    "fecha": "2026-10-12",
+    "titulo": "Duelpass options for hosts",
+    "puntos": [
+      "When hosting, choose the Duelpass points for new players (10 like the original, 100, 500 or 1000) or turn on free duels.",
+      "Manage can set or add Duelpass points and MP for each character.",
+      "Servers that stop answering show “Offline · last seen…”, and servers that went private say so."
+    ]
+  },
+  {
+    "fecha": "2026-10-10",
+    "titulo": "Rooms by language",
+    "puntos": [
+      "Each language has its own rooms, like the original.",
+      "The world room still brings everyone together."
+    ]
+  },
+  {
+    "fecha": "2026-10-10",
+    "titulo": "Best-of-3 matches in PvP",
+    "puntos": [
+      "Match rooms are played as best of 3; the loser chooses who goes first."
+    ]
+  },
+  {
+    "fecha": "2026-10-10",
+    "titulo": "Card thumbnails",
+    "puntos": [
+      "Card thumbnails are back when activating cards, without game crashes."
+    ]
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "name": "yo2online",
+  "private": true,
+  "type": "module",
+  "description": "Workspace for the duel engine (ocgcore) used by the YO2 server emulator. See BUILDING.md.",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "packageManager": "pnpm@10.33.2"
+}
