@@ -66,6 +66,8 @@ PRUEBAS = [
     ("T4.sala_tras_pvp", "T4", ["research/lobby/test_sala_tras_pvp.py"], {"puertos": True}),
     # 24-10 (rx/B45): el mismo usuario vuelve a entrar con su conexión vieja aún abierta (Hub._supersede)
     ("T4.reconexion", "T4", ["research/lobby/test_reconexion.py"], {"puertos": True}),
+    # 25-10 (rx/ESP): el espectador (PvP y Mirar de NPC) no recibe peticiones de jugada ni ventanas de decisión
+    ("T4.espectador_decisiones", "T4", ["research/lobby/test_espectador_decisiones.py"], {"tiempo": 600}),
     ("T4.hot_sala_tras_pvp", "T4", ["research/lobby/test_hot_sala_tras_pvp.py", "--rev", "20925cea"], {"puertos": True}),
     ("T5.cifrado", "T5", ["research/cuentas/test_cifrado.py"], {}),
     ("T5.login", "T5", ["research/cuentas/test_login.py"], {"puertos": True}),

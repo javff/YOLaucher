@@ -2,12 +2,12 @@
 
 > Generado por `python -m yo2srv.gen_banderas` desde `yo2srv/config.py`. **No se edita a mano**: cambia el registro y regenera.
 
-221 banderas. Perfil por defecto: `vanilla` (`YO2_PERFIL=vanilla|enhanced`). Hoy `enhanced` = `vanilla` en todas (`enhanced` aparece como «= vanilla»). Precedencia al arrancar: perfil → `admin_banderas.json` → variable de entorno `YO2_*` → cambio en caliente.
+222 banderas. Perfil por defecto: `vanilla` (`YO2_PERFIL=vanilla|enhanced`). Hoy `enhanced` = `vanilla` en todas (`enhanced` aparece como «= vanilla»). Precedencia al arrancar: perfil → `admin_banderas.json` → variable de entorno `YO2_*` → cambio en caliente.
 
 | Origen | Banderas | Qué significa |
 |---|---:|---|
 | `oficial` | 146 | como el original (C/P en las notas) o intento de serlo |
-| `inventado` | 15 | nuestro, aprobado y detrás de una bandera (no es 1:1) |
+| `inventado` | 16 | nuestro, aprobado y detrás de una bandera (no es 1:1) |
 | `tecnico` | 40 | sin efecto de juego: rutas, puertos, límites, logs, pruebas, seguridad |
 | `?` | 20 | sin decidir (ver más abajo) |
 
@@ -23,6 +23,7 @@ Banderas de origen `inventado` cuyo valor en vanilla NO es «apagado» (y por ta
 | `duelo.tiempo_respuesta` | `180.0` | Segundos para responder a una petición |  |
 | `ocg.USE_BRAIN` | `True` | La NPC juega con el cerebro (research/ia); sin él, bot.ts |  |
 | `duelo.npc_janken_azar` | `True` | Piedra-papel-tijera contra la NPC: mano al azar | extra; en instancias de prueba (YO2_PVP_TEST=1) el azar va apagado salvo que se pida |
+| `pvp.WATCH_SIN_DECISIONES` | `True` | El espectador no recibe peticiones de jugada ni ventanas de decisión (SÍ/NO, opciones, listas, avisos de aceptar) del jugador 0 | 25-10, rx/ESP; el cliente abre esas ventanas también en modo espectador (C) y el visionado se quedaba parado; qué mandaba Konami a un espectador: D |
 | `persistencia.START_LEVEL` | `1` | Nivel (LV) de un personaje nuevo, 1-99. 1 = como el original (con LV 0-1 el cliente solo enseña las Salas de Principiantes); 2 o más = los nuevos entran en todas las salas | 12-10: elección del anfitrión en el lanzador («Starting level»); solo afecta a los personajes que se crean después |
 | `persistencia.COUNTRY_BY_LANG` | `True` | País (bandera) de un personaje nuevo según el idioma del cliente (0x4100): JP US DE IT FR ES KR; si no, DEFAULT_COUNTRY | 12-10: en el oficial era el país de la cuenta de Konami (no reproducible); los personajes de antes no cambian |
 
@@ -141,6 +142,7 @@ Sin evidencia clara en las notas (`research/**/NOTES.md`, `HANDOFF.md`, `TIEMPO.
 | `pvp.PVP_MATCH` | `'1'` | = vanilla | oficial | Match al mejor de 3 (1; 0 = como antes; cerrar = una partida y fin) |
 | `pvp.MATCH_WAIT` | `300.0` | = vanilla | tecnico | Segundos de espera entre partidas de un match |
 | `pvp.PVP_WATCH` | `True` | = vanilla | oficial | Espectador de PvP (lado pvp_match de lobby.WATCH) |
+| `pvp.WATCH_SIN_DECISIONES` | `True` | = vanilla | inventado | El espectador no recibe peticiones de jugada ni ventanas de decisión (SÍ/NO, opciones, listas, avisos de aceptar) del jugador 0 |
 | `pvp.SURRENDER_MIN_TURN` | `10` | = vanilla | oficial | Turno global a partir del cual se puede rendir (dlg 82 «a partir del 10º turno»; 0 = siempre) |
 | `pvp.SURRENDER_ROOM_OPTION` | `True` | = vanilla | oficial | Respetar la opción de sala «Rendirse OFF» (byte 21 de 0x4288): sin rendición en esa sala |
 | `pvp.SURRENDER_ENDS_MATCH` | `False` | = vanilla | oficial | Rendirse en un match lo cierra entero (0x4d P1 = 5); apagada = solo se pierde la partida en curso y el match sigue (como el oficial) |

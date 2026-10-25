@@ -126,6 +126,34 @@ COUNTRY = b"ESP" + bytes(1)
 PVP_WATCH = os.environ.get("YO2_WATCH", "1") not in ("", "0")   # 06-10: activado por defecto con el OK del owner
 WATCH_BATCH = 64
 WATCH_REQ_TTL = 60.0          # s entre 0x4320 y el 0x6700 del mismo cliente
+# 25-10 (rx/ESP): el espectador NO recibe lo que le pide una decisión a un jugador. Su cola es la del jugador 0 (como la
+# repetición), y ahí van las ventanas SÍ/NO, de opciones, de anuncio, de posición, de descarte, el aviso de aceptar
+# (CUOkDialog) y las listas de cartas (CWindowDeckList) con sus peticiones de jugada (tipo 0x1a). Todo eso sale del
+# mismo DUEL_VIEW 0x32 (CUYesNoDialog / CUOkDialog / CUSelect*Dialog en duel_view_dispatch 0x73dd80) o 0x33 (lista),
+# sin ninguna comprobación de modo espectador (C): el cliente abre la ventana y manda su 0x6423 / 0x6432 a un servidor
+# que no lo espera, y la que pide lista (0x33) sale en blanco porque el 0x6610 con las cartas no es un 0x6202 y no se
+# le manda (el propio traductor ya vio esa «ventana en blanco que no se cerraba»). En los 327 duellogs oficiales las
+# ventanas SÍ/NO (tipo 2) van solo al lado que decide (230 al 0, 267 al 1) y las de aviso de cadena (tipo 3) a los dos
+# jugadores, cada uno con la suya (C); los registros solo traen esos dos lados, así que qué mandaba Konami a un
+# espectador: D. 0x32 con P0 = 0xff (el rótulo «Selecciona…», CULockOnDialog) no es modal ni pide nada: se queda.
+# YO2_WATCH_SIN_DECISIONES=0 devuelve el espectador de antes (todo lo del jugador 0).
+WATCH_SIN_DECISIONES = os.environ.get("YO2_WATCH_SIN_DECISIONES", "1") not in ("", "0")
+T_REQUEST, T_VIEW, VIEW_DIALOG, VIEW_LIST, DLG_LOCKON = 0x1a, 0x1b, 0x32, 0x33, 0xff
+
+
+def watch_oculta(d):
+    """True si este 0x6202 (40 B: u32 tipo, u32 B, 8 × u32 P) NO debe llegar a un espectador: la petición de jugada
+    (tipo 0x1a; el ejecutor del cliente en modo 7/8 la salta, C) y cualquier ventana de decisión (DUEL_VIEW 0x32 con
+    P0 distinto de 0xff, y la lista 0x33). El resto, la jugada, pasa tal cual."""
+    if len(d) < 12:
+        return False
+    tipo, b, p0 = struct.unpack_from(">III", d, 0)
+    tipo &= 0xff                                          # solo cuenta el byte bajo (lockstep/proposal.setcommand)
+    if tipo == T_REQUEST:
+        return True
+    if tipo == T_VIEW:
+        return (b == VIEW_DIALOG and p0 != DLG_LOCKON) or b == VIEW_LIST
+    return False
 # NUESTRO, no 1:1: el 0x6006 no trae vidas y la escena de duelo las lee de ND+0x570/+0x604, que solo pone 0x600c
 # (FUN_006918d0 / FUN_0071fe10). Con esto se le manda también un 0x600c (vista del jugador 0) antes del 0x6006.
 WATCH_SEND_PREP = os.environ.get("YO2_WATCH_PREP", "") not in ("", "0")
@@ -1055,7 +1083,7 @@ class PvpMatch:
             while i < len(ents) and len(batch) < WATCH_BATCH:
                 side, d = ents[i]
                 i += 1
-                if side == 0:
+                if side == 0 and not (WATCH_SIN_DECISIONES and watch_oculta(d)):
                     batch.append((0x6202, d))
             w["i"] = i
             if batch:

@@ -365,10 +365,12 @@ class NpcWatch:
 
     def _pump(self, d):
         """0x6701 en cuanto está enganchado (las manos ya se saben: el duelo ha empezado) y, a cada 0x6702, hasta
-        WATCH_BATCH 0x6202 más (como pvp_match._watch_pump: ningún 0x6202 antes de su primer 0x6702)."""
+        WATCH_BATCH 0x6202 más (como pvp_match._watch_pump: ningún 0x6202 antes de su primer 0x6702), SIN las
+        peticiones de jugada ni las ventanas de decisión del jugador (pvp_match.watch_oculta, 25-10)."""
         if not d.watchers:
             return
         batch_n = self._pm("WATCH_BATCH", 64)
+        sin, oculta = self._pm("WATCH_SIN_DECISIONES", False), self._pm("watch_oculta", None)   # 25-10 (rx/ESP)
         with d.lock:
             for w in list(d.watchers):
                 c = w["c"]
@@ -381,9 +383,14 @@ class NpcWatch:
                     continue
                 if not w["want"]:
                     continue
-                batch = d.entries[w["i"]:w["i"] + batch_n]
+                batch, i = [], w["i"]
+                while i < len(d.entries) and len(batch) < batch_n:
+                    x = d.entries[i]
+                    i += 1
+                    if not (sin and oculta is not None and oculta(x)):   # sin peticiones ni ventanas de decisión
+                        batch.append(x)
+                w["i"] = i
                 if batch:
-                    w["i"] += len(batch)
                     w["want"] = False
                     for x in batch:
                         self._post(c, 0x6202, x)

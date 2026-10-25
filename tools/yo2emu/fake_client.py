@@ -554,6 +554,17 @@ def _t6202(d):
     return t & 0xff, b
 
 
+def _decision_6202(d):
+    """¿Este 0x6202 le pide algo a quien lo recibe? Petición de jugada (tipo 0x1a) o ventana de decisión: DUEL_VIEW (tipo
+    0x1b) 0x32 con P0 distinto de 0xff (SÍ/NO, aceptar, opciones, anuncios…) y la lista 0x33. Es la definición de lo que un
+    espectador no debe recibir (25-10, rx/ESP); escrita aquí aparte del servidor a propósito."""
+    if len(d) < 12:
+        return False
+    t, b, p0 = struct.unpack(">III", d[:12])
+    t &= 0xff
+    return t == 0x1a or (t == 0x1b and ((b == 0x32 and p0 != 0xff) or b == 0x33))
+
+
 def is_prompt(mid, d):
     if mid == 0x6610:
         return True
@@ -858,8 +869,14 @@ def run_pvp(offset, host="127.0.0.1"):
               f"{oc.get('jseen')}")
         ca = [x for m, _, x in A.duel.msgs if m == 0x6202]
         cc = oc.get("cmds") or []
-        check(res, "WATCH: el espectador recibe los mismos 0x6202 que A hasta el 0x4d", cc and ca[:len(cc)] == cc
-              and not oc.get("timeout"), f"{len(cc)} de {len(ca)}")
+        # 25-10 (rx/ESP): lo de A SIN las peticiones de jugada ni las ventanas de decisión (el espectador no decide)
+        exp = [x for x in ca if not _decision_6202(x)]
+        check(res, "WATCH: el espectador recibe los 0x6202 de A sin peticiones ni ventanas de decisión, hasta el 0x4d",
+              cc and exp[:len(cc)] == cc and _t6202(cc[-1])[0] == 0x4d and not oc.get("timeout"),
+              f"{len(cc)} de {len(exp)} ({len(ca)} de A)")
+        check(res, "WATCH: A tuvo peticiones y el espectador NO recibió ninguna (ni ventana de decisión)",
+              sum(1 for x in ca if _t6202(x)[0] == 0x1a) > 0 and not any(_decision_6202(x) for x in cc),
+              f"A: {sum(1 for x in ca if _t6202(x)[0] == 0x1a)} peticiones, {sum(1 for x in ca if _decision_6202(x))} peticiones o ventanas")
         C.duel.send(0x0003)
     check(res, "duelo con «auto» hasta el final: uno gana y el otro pierde (0x4d 1/2)",
           {oa.get("res"), ob.get("res")} in ({1, 2}, {3}), f"A {oa} B {ob}")   # {3}: empate (corte por SELECT_SUM)
@@ -892,9 +909,35 @@ def run_pvp(offset, host="127.0.0.1"):
     B.room.send(0x4303, struct.pack(">i", 1))
     A.room.wait(0x4306, start=na); B.room.wait(0x4306, start=nb)
     sa, sb = pvp_start_duel(res, A, B, "rendición")
-    oa, ob = {}, {}
+    oa, ob, ow = {}, {}, {}
+    if watch:
+        # 25-10 (rx/ESP): SÍ/NO forzado. A pide rendirse y recibe el diálogo de confirmación (DUEL_VIEW 0x32 tipo 2); el
+        # espectador mira ese duelo entero y NO debe recibirlo ni ninguna petición, y su flujo debe llegar al 0x4d.
+        # Se engancha ANTES de que A se rinda (la rendición acaba el duelo en un segundo)
+        nc = len(C.room.msgs)
+        C.room.send(0x4320, struct.pack(">I", B.pid))
+        wr = C.room.wait(0x4321, start=nc)
+        check(res, "WATCH (rendición): 0x4320 -> 0x4321 = 0", wr is not None and wr[:4] == bytes(4), wr.hex(" ") if wr else "nada")
+        tw = threading.Thread(target=watch_loop, args=(C, ow)); tw.start()
+        t0 = time.time()
+        while ow.get("info") is None and time.time() - t0 < 8:
+            time.sleep(0.02)
     ta = threading.Thread(target=auto_loop, args=(A.duel, sa, oa, True)); tb = threading.Thread(target=auto_loop, args=(B.duel, sb, ob))
-    ta.start(); tb.start(); ta.join(); tb.join()
+    ta.start(); tb.start()
+    ta.join(); tb.join()
+    if watch:
+        tw.join()
+        ca = [x for m, _, x in A.duel.msgs if m == 0x6202]
+        cw = ow.get("cmds") or []
+        yn = [x for x in ca if _t6202(x)[0] == 0x1b and struct.unpack(">I", x[4:8])[0] == 0x32 and struct.unpack(">I", x[8:12])[0] == 2]
+        exp = [x for x in ca if not _decision_6202(x)]
+        check(res, "WATCH (rendición): A recibió el diálogo SÍ/NO de la rendición y el espectador no recibió ninguna petición ni ventana",
+              len(yn) >= 1 and cw and not any(_decision_6202(x) for x in cw) and not any(x in cw for x in yn),
+              f"A: {len(yn)} SÍ/NO; espectador: {sum(1 for x in cw if _decision_6202(x))} de decisión de {len(cw)}")
+        check(res, "WATCH (rendición): el flujo del espectador sigue hasta el 0x4d (derrota de A vista desde A) sin quedarse parado",
+              cw and exp[:len(cw)] == cw and _t6202(cw[-1])[0] == 0x4d and not ow.get("timeout")
+              and struct.unpack(">I", cw[-1][8:12])[0] == 2, f"{len(cw)} de {len(exp)}; timeout={ow.get('timeout')}")
+        C.duel.send(0x0003)
     check(res, "A se rinde: A pierde (0x4d 2) y B gana (0x4d 1)", oa.get("res") == 2 and ob.get("res") == 1, f"A {oa} B {ob}")
     check(res, "B recibe 0x649b (2, 1) «se ha rendido»", ob.get("svr") == b"\2\1", f"{ob.get('svr')}")
     for X in (A, B):
@@ -1936,8 +1979,11 @@ def run_npcmirar(offset, host="127.0.0.1", rival=84):
     cp = [x for k, (m, _, x) in enumerate(P.duel.msgs) if k >= start and m == 0x6202
           and not (dlg[0] is not None and dlg[0] <= k < (dlg[1] or 1 << 30))]
     cw = ow.get("cmds") or []
-    check(res, "espectador: los mismos 0x6202 que P DESDE EL PRINCIPIO (sin el «¿Te rindes?») hasta el 0x4d",
-          cw == cp and not ow.get("timeout"), f"{len(cw)} de {len(cp)}")
+    # 25-10 (rx/ESP): tampoco peticiones de jugada ni ventanas de decisión (pvp_match.watch_oculta, igual que en PvP)
+    cpv = [x for x in cp if not _decision_6202(x)]
+    check(res, "espectador: los 0x6202 de P DESDE EL PRINCIPIO (sin el «¿Te rindes?», peticiones ni ventanas de decisión) hasta el 0x4d",
+          cw == cpv and not ow.get("timeout") and not any(_decision_6202(x) for x in cw)
+          and sum(1 for x in cp if _decision_6202(x)) > 0, f"{len(cw)} de {len(cpv)} ({len(cp)} de P)")
     back = W.room.wait(0x3112, start=nw, timeout=6, pred=pose(W, 1))
     check(res, "al acabar: W recibe 0x3112 op 1 (sin pose)", back is not None)
     W.duel.send(0x0003); time.sleep(0.2); W.duel.close()
