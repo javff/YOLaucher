@@ -3,8 +3,8 @@
 La clave son 32 bytes aleatorios. En disco solo queda el blob de CryptProtectData: solo el mismo usuario de Windows
 en el mismo PC puede descifrarlo. Ruta por defecto: %LOCALAPPDATA%\\YO2Online\\db.key (YO2_DB_KEYFILE la cambia).
 
-OJO (MSIX): los procesos lanzados desde una app de escritorio empaquetada escriben AppData en una caché privada del
-paquete (AppData\\Local\\Packages\\<app>_*\\LocalCache\\Local\\...). Por eso, al LEER, si la ruta normal no existe se
+OJO (MSIX): los procesos lanzados desde una app empaquetada (MSIX) escriben AppData en una caché privada del
+paquete (AppData\\Local\\Packages\\<paquete>\\LocalCache\\Local\\...). Por eso, al LEER, si la ruta normal no existe se
 mira también esa caché; al CREAR nunca se inventa una clave nueva si la base ya existe cifrada.
 """
 import ctypes

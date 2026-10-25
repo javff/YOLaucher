@@ -31,6 +31,11 @@ FC_MODOS = ["prueba", "pvp", "npc", "kill", "desconexion", "dpcoste", "dpcero", 
 # id, grupo, argv (relativo a tools/yo2emu), opciones: puertos (añade --offset), min_offset, env, tiempo (s)
 PRUEBAS = [
     ("T1", "T1", ["research/traductor/test_translator.py", "30"], {"tiempo": 1800}),
+    # 24-10 (rx/OPT, NOTES §40): SELECT_OPTION con aux.Stringid = código << 20 | n y SELECT_CARD en la mano del rival
+    ("T1.opciones_mano_rival", "T1", ["research/traductor/test_opciones_mano_rival.py"], {"tiempo": 600}),
+    # 24-10 (rx/OPT2, NOTES §41): SÍ/NO de una carta (código << 20 | n), Rain Storm / Yubel / Yu-Jo, anuncios con ocgcore real,
+    # SORT_CARD (la librería escribía un byte de más) y la mano del rival con 0x52
+    ("T1.decisiones_opt2", "T1", ["research/traductor/test_decisiones_opt2.py"], {"tiempo": 900}),
 ] + [
     (f"T2.{m}", "T2", ["fake_client.py", m], {"puertos": True, "env": T2_ENV, "tiempo": 900}) for m in FC_MODOS
 ] + [
@@ -59,6 +64,8 @@ PRUEBAS = [
     ("T4.hot_npc_mirar", "T4", ["research/lobby/test_hot_npc_mirar.py", "--rev", "0dc56f73~1"], {"puertos": True}),
     # sala tras el PvP (07-10, 53975a84): la prueba directa y la carga en caliente sobre 20925cea (el código del vivo antes)
     ("T4.sala_tras_pvp", "T4", ["research/lobby/test_sala_tras_pvp.py"], {"puertos": True}),
+    # 24-10 (rx/B45): el mismo usuario vuelve a entrar con su conexión vieja aún abierta (Hub._supersede)
+    ("T4.reconexion", "T4", ["research/lobby/test_reconexion.py"], {"puertos": True}),
     ("T4.hot_sala_tras_pvp", "T4", ["research/lobby/test_hot_sala_tras_pvp.py", "--rev", "20925cea"], {"puertos": True}),
     ("T5.cifrado", "T5", ["research/cuentas/test_cifrado.py"], {}),
     ("T5.login", "T5", ["research/cuentas/test_login.py"], {"puertos": True}),
@@ -67,12 +74,16 @@ PRUEBAS = [
     ("T5.en_uso", "T5", ["research/cuentas/test_en_uso.py"], {"puertos": True}),
     ("T6.tienda2", "T6", ["research/persistencia/test_tienda2.py"], {"puertos": True}),
     ("T6.duelpass_cifrado", "T6", ["research/persistencia/test_duelpass_cifrado.py"], {}),
+    # 24-10 (rx/MIS): contadores del perfil recogidos durante el duelo (DuelTally) + apply_duel_stats; la parte en vivo usa duelcore
+    ("T6.duel_stats", "T6", ["research/persistencia/test_duel_stats.py"], {"tiempo": 600}),
     # --ref/--rev = el run.py de ANTES del cambio que carga el hot (con HEAD la 1.ª comprobación falla por diseño); los
     # ficheros «nuevos» que carga salen de git, de su propio commit (--nuevo 75a07f07 por defecto, 12-10), no del disco
     ("T6.hot_pvp_carta", "T6", ["research/persistencia/test_hot_pvp_carta.py", "--ref", "75a07f07~1"], {"puertos": True}),
     ("T7.units_b25", "T7", ["research/duelfin/test_units_b25.py"], {}),
     ("T7.units_b50", "T7", ["research/duelfin/test_units_b50.py"], {}),
     ("T7.units_desconexion", "T7", ["research/duelfin/test_units_desconexion.py"], {}),
+    # 24-10 (rx/MIS): reglas de rendición del oficial (turno 10 / sala «Rendirse OFF»), unitarias
+    ("T7.units_rendicion", "T7", ["research/duelfin/test_units_rendicion.py"], {}),
     ("T8.storage", "T8", ["storage/test_storage.py"], {}),
     ("T8.equipos", "T8", ["research/equipos/test_equipos.py"], {}),
     ("T8.intercambio", "T8", ["research/intercambio/test_intercambio.py"], {}),
@@ -87,6 +98,8 @@ PRUEBAS = [
     ("T8.npc_mazos_extra", "T8", ["research/ia/test_npc_mazos_extra.py"], {"tiempo": 900}),
     ("T8.ocg_test", "T8", ["ocg_test.py"], {}),
     ("T8.pvp_test", "T8", ["pvp_test.py"], {}),
+    # 24-10 (rx/B45): reloj global (0x6461 quién = 3) del side deck entre partidas de un match (pvp_match.SWAP_TIME)
+    ("T8.swap_reloj", "T8", ["research/duelfin/test_swap_reloj.py"], {"puertos": True}),
     ("T8.tickets", "T8", ["research/seguridad_duelo/test_tickets.py"], {}),
     # juega duelos hasta ver empate, gana el jugador y gana la NPC (azar): el nº de OK cambia de una pasada a otra
     ("T8.janken", "T8", ["research/lockstep/test_janken.py"], {"puertos": True, "tiempo": 1200, "ok_variable": True}),

@@ -59,6 +59,9 @@ C_ATTACK_END = 0x1c     # cierra el ataque en curso (P0 = 0, P1 = fase a la que 
 C_HAPPEN = 0x2f         # P0 = id YO2: muestra la carta que activa (DUEL_VIEW 0x43 + 0x21 CARD_HAPPEN)    PROBABLE
 C_FIELD_CHANGE = 0x14   # FUN_00713240: P0 = id INTERNO de la magia de campo (0 = ninguna) -> DAT_012ca4c0 + DUEL_VIEW 7
 #                         FIELD_CHANGE (fondo/BGM por FUN_00704100) y, al acabar la vista, FUN_006e4050  C (B23)
+C_REVEAL = 0x2e         # P0 = zona | bits<<8, P1 = id INTERNO, P2 = uid: LA activación del oficial (DUEL_VIEW 0x13 de la mano
+#                         + 0x43 + 0x21 CARD_HAPPEN: destello/sonido/panel). 1356 de 1356 eslabones de los duellogs oficiales
+#                         la llevan justo antes de su 0x12, con el mismo jugador, zona y uid (NOTES §35)    C (oficial)
 C_FLASH = 0x30          # P0 = id INTERNO: destello 0x21 sobre esa carta boca arriba del campo (FUN_00412981) PROBABLE
 C_TO_GRAVE = 0x31       # P0 = zona | índice<<8, P1 = zona destino, P2 = uid; con animación de destrucción PROBABLE
 C_POSITION = 0x34       # P0 = ranura, P1 = 1 voltea la cara; SIEMPRE alterna ATK/DEF; P2 = animación    PROBABLE
@@ -67,6 +70,7 @@ C_MOVE = 0x3f           # P0 = origen (j | zona<<1 | uid<<6), P1 = destino (j | 
 C_MOVE_FIELD = 0x41     # P0 = origen (como 0x3f), P1 = destino (j | ranura<<1), P2 = def<<8 | boca arriba PROBABLE
 C_TOKEN = 0x48          # P0 = destino empaquetado (como C_SUMMON), P1 = id INTERNO, P2 = valor           PROBABLE
 C_HAND_SHUFFLE = 0x4e   # baraja la mano (semilla P1<<16 | P0)                                           PROBABLE
+C_MONST_SHUFFLE = 0x49  # FUN_00714ea0: baraja las ranuras de monstruo de P2 (máscara, bits 0-4); semilla P1<<16 | P0 (NOTES MIS-1)  C
 C_SET_MONSTER = 0x4f    # P1 = ranura<<1 | cara<<14 | def<<15, P2 = uid<<1 | gasta invocación normal   PROBABLE
 C_SET_SPELL = 0x50      # P1 = ranura<<1 | cara<<14, P2 = uid (de la mano a M/T; boca arriba = activar)   PROBABLE
 # «Invocación terminada» (NOTES §19). 0x2d (siempre), 0x4f (P2 bit0), 0x34 (P1 y P2 != 0) y 0x35 (P2 bit1) ponen el
@@ -92,6 +96,12 @@ C_SUMMON_FX = 0x2c      # P0 sin uso, P1 = ranura, P2 = tipo (byte bajo; 2 -> fl
 #                         normal<<8 (FUN_006e5f10; NO: ya lo hace el bit0 de 0x4f). Vista 0x34 (j, ranura|cara, uid)  C
 SUMMON_FX_KIND = 2      # qué tipo mandaba el oficial: D (solo cambia flags que 0x4f ya puso)
 C_HAND_SHOW = 0x51      # P0 = uid de una carta de la mano: la enseña                                    PROBABLE
+C_HAND_OPEN = 0x52      # P0 = 1/0: FUN_00713dc0 pone/quita el bit 1 de las banderas del jugador de B (FUN_006fa050) y, con 1, el
+#                         bit 2; la vista 0x13 que lanza no hace nada (devuelve 0). Con el bit 1, duel_opp_hand_visible
+#                         (FUN_006fa0e0) da por visible TODA la mano de ese jugador: se dibuja boca arriba. Así enseñaba el oficial
+#                         la mano del rival en Trap Dustshoot / Crush Card Virus / Royal Tribute…: 0x52 [1] antes, y 0x52 [0]
+#                         después (tras el 0x29 de la carta elegida), sin ningún 0x51 (que sí manda al sacar UNA carta de la
+#                         mano y abre su panel de detalle)  C (código + 34 usos en los duellogs 2009) / P (cómo se ve)
 C_DICE = 0x5d           # RUN_DICE: P0 = zona, P1 = resultado                                            DUDOSO
 # --- «Motor: lo que faltaba» (NOTES §14). Manejadores leídos en work/handlers.c + desensamblado -------------------
 C_COIN = 0x5c           # FUN_007135d0 -> DUEL_VIEW 0x38 (CCoin, «duel_effect_coin_new.txt», ctor FUN_007ab150):
@@ -172,7 +182,8 @@ C_LINK = 0x42           # FUN_007119f0: P0 = origen (j | ranura<<8), P1 = destin
 #                         fotogramas + sonido 0x1000000a) y al acabar FUN_006e2930(destino, tipo, id = P0, 0).  C
 C_LOCKON = 0x29         # FUN_0070e920: P0 = zona (campo: ranura 0..10; 0xb mano), P1 = uid, P2 = 0 -> DUEL_VIEW
 #                         0x18 CARD_LOCKON (animación de estado 1 del objeto de la carta). Zonas 0xe/0xf MUEVEN la
-#                         carta a la cima de su pila (FUN_006f7c10/7d20): no se usan.  C (código) / sin probar en vivo
+#                         carta a la cima de su pila (FUN_006f7c10/7d20) y abren la vista 0x17 (cementerio): así señalaba el
+#                         oficial una carta objetivo del cementerio (66 en los duellogs; NOTES §35, lockon_pile)  C
 # --- Sacrificio y fusión (NOTES §15, agente «duelo2»). Cadenas de depuración del exe (SJIS) junto a cada vista:
 # 0x29 «生贄モンスターセット», 0x2b «生贄召喚開始», 0x2c «融合召喚モンスターセット», 0x2e «融合召喚開始_DoMaterial»,
 # 0x2a/0x2d «融合＆生贄召喚キャンセル», 0x36 «DUEL_VIEW_RUN_FUSION».  C
@@ -208,6 +219,7 @@ VIEW_SET_MATERIAL = 0x29    # DUEL_VIEW 0x29 (P0 jugador, P1 zona YO2 / ranura, 
 DLGT_RITUAL = 0xe           # 0x1b B=0x32 P0=0xe -> CURitualDialog (vtable 0xbec6d0)
 DLG_RITUAL_MONSTER, DLG_RITUAL_STARS, DLG_RITUAL_DECK = 286, 207, 289
 KIND_RITUAL = 8             # clase de 0x1a de las dos peticiones del ritual (oficial)
+KIND_OPP_HAND, DLG_PICK_OPP_HAND = 8, 244   # §40: clase de 0x1a y panel «Selecciona 1 carta desde la mano de tu oponente.» (oficial)
 HINTMSG_SPSUMMON = 509      # HINT tipo 3 de ocgcore antes del SELECT_CARD del monstruo de ritual
 STARS_NONE = 0xff
 LINK_STALE = (-1, -1)   # stat_sent de un monstruo al que se le colgó un vínculo DESPUÉS de su par EFFECT_SET_STATS
@@ -260,6 +272,30 @@ YESNO_SYS_DLG = {30: 223,    # «A replay occurred, continue the attack?» -> «
                  32: 221,    # «Conduct another Battle Phase?» -> «¿Comenzarás la 2ª Battle Phase?»
                  94: 270,    # «Activate this card's effect now?» -> «¿Usar el efecto ahora?»
                  210: 93}    # «Continue selecting cards?» -> «¿Seleccionar otra carta?»
+# §41 (OPT2): SELECT_YESNO / SELECT_EFFECTYN de UNA carta -> su texto del cliente. ocgcore (wasm 0.1.2) manda aux.Stringid(código,
+# n) como código << 20 | n (antes se leía como código << 4 | n y NINGUNA carta con description llegaba a su texto: Ryko, etc.).
+# (passcode, n) -> (dlg, carta que va con su nombre (clase 4): None = ninguna, "self" = la propia, o un passcode, número
+# (clase 1) que va detrás de la plantilla o None). Lista A del oficial (duellogs 2009): texto sin argumentos = [(dlg, 2)];
+# con la carta = [(id interno, 4), (dlg, 0)]; con un número = [(id, 4), (dlg, 0), (cifra, 1)]. Confianza: C = el
+# duellog oficial trae ESE texto para ESA carta; P = emparejado por el texto del cliente (dlg_text_e vs cards.cdb)
+YESNO_DLG = {
+    (21502796, 1): (353, None, None),      # Ryko, Lightsworn Hunter «Destroy this Card?»                      C (2 duellogs)
+    (24140059, 0): (305, None, None),      # A Cat of Ill Omen «Will you add the designated card to your hand?» C (2 duellogs)
+    (23927567, 0): (305, None, None),      # An Owl of Luck (mismo "Add to hand?")                             P
+    (55256016, 0): (104, None, None),      # Judgment of Anubis «Do you wish to destroy a monster?»            C (duellog)
+    (28553439, 1): (104, None, None),      # Magical Dimension "Destroy 1 monster?"                            P
+    (69270537, 0): (89, None, None),       # Contact Out «Special Summon a Fusion-Material Monster to the Field?» P (texto casi idéntico)
+    (44656491, 0): (232, "self", 100),     # Messenger of Peace «To maintain "%s" requires %dLP. Pay?»           C (duellog)
+    (82432018, 0): (232, "self", 1000),    # Mask of Brutality                                                 C (duellog)
+    (22359980, 0): (232, "self", 2000),    # Mirror Wall                                                       P (mismo mantenimiento)
+    (21598948, 1): (232, "self", 500),     # Fairy Box                                                         P
+    (24874630, 0): (232, "self", 1000),    # Fiend's Sanctuary                                                 P
+    (92394653, 1): (232, "self", 500),     # Spirit's Invitation                                               P
+    (81332143, 2): (299, 14731897, None),  # Yu-Jo Friendship «Will you show "Unity" to coerce ... handshake?»    P (299 es el único texto con "Unity")
+}
+# SELECT_EFFECTYN con la description de SISTEMA + la carta (Duel.SelectEffectYesNo(tp, c, 96) de los Six Samurai, Great
+# Shogun Shien, Colosseum…): «¿Destruir otra carta en lugar de "%s"?» = dlg 333 con el nombre. C (duellogs: Shien y Zanji)
+YESNO_SYS_CARD = {96: 333}
 REASON_NONE = 0xff      # u8 de motivo de 0x6611/0x6612 (solo se lee con máscara 0): texto 700+u8 de dlg_text; 0 = «Se
                         # necesita un tributo…» (lo que salía en el cementerio); 0xff = sin texto (FUN_007c2270)  C
 # --- B42: diálogos del cliente para las decisiones que antes tomaba bot.ts (NOTES §18) -----------------------------
@@ -302,6 +338,12 @@ YO2_ATTR = {1: 0x10, 2: 0x20, 3: 0x2, 4: 0x4, 5: 0x1, 6: 0x8}
 DLG_SEL_RACE, DLG_SEL_ATTR, DLG_SEL_POS, DLG_SEL_EFFECT, DLG_SEL_CARDTYPE = 241, 242, 326, 259, 260
 DLG_NUM_LEVEL, DLG_NUM_LP, DLG_NUM_QTY, DLG_NUM_COUNTERS = 280, 301, 594, 317   # textos del diálogo de número
 LBL_NUM, LBL_LEVEL, LBL_LP1000, LBL_LP100, LBL_COUNTERS = 283, 304, 302, 303, 318   # «%d», «Nivel %d», «%d000LP»…
+# §41: texto y etiqueta del diálogo de número que usaba cada carta (passcode del último eslabón -> (dlg del título, dlg de la
+# etiqueta)). Duellogs oficiales 2009: Card Trooper 0x1b 0x32 0xb con lista A [(330, 2)] y P2 = 331 | 1<<16 | 3<<24 (C: 5 de 5);
+# Reasoning 280 + «Nivel %d» (la heurística de _num_plan ya lo daba). Sixth Sense: 296 «Elige dos números del 1 al 6» (P: es el único
+# texto del cliente de números 1-6; el 297 es el aviso de lo que eligió el rival)
+NUMBER_TEXTS = {85087012: (330, 331),     # Card Trooper «Decide cuántas cartas mandas al Cementerio» / «%d carta(s)»
+                3280747: (296, LBL_NUM)}  # Sixth Sense
 # SELECT_OPTION: descripción de ocgcore (sistema o aux.Stringid(código, n) = código<<4 | n) -> texto dlg del cliente.
 # Los dlg 406-480 son, uno a uno, los efectos a elegir de cartas concretas de la época (Fuh-Rin-Ka-Zan, Kunai with
 # Chain, Don Zaloog…): el servidor oficial mandaba esos ítems. Emparejado por el texto (dlg_text_e vs cards.cdb)  P
@@ -332,11 +374,39 @@ OPTION_DLG = {70: 440, 71: 441, 72: 442,                                  # DECL
               _sid(61587183, 1): 432, _sid(61587183, 2): 433, _sid(61587183, 3): 438, _sid(61587183, 4): 439,  # Chick
               _sid(74153887, 1): 436, _sid(74153887, 2): 437,             # Dark Scorpion - Meanae
               _sid(76754619, 0): 408, _sid(76754619, 1): 409,             # Pyramid Energy (ATK / DEF)
+              _sid(45653036, 0): 479, _sid(45653036, 1): 480,             # Rain Storm (§41: destruir 1 Mágica/Trampa / 2 cartas del rival)
               _sid(76922029, 1): 422, _sid(76922029, 2): 423,             # Don Zaloog
               _sid(80161395, 1): 408, _sid(80161395, 2): 409,             # Mystik Wok (ATK / DEF)
               _sid(86198326, 0): 408, _sid(86198326, 1): 409,             # 7 Completed
               _sid(93130021, 1): 467, _sid(93130021, 2): 468, _sid(93130021, 3): 469,   # Victory Viper / Power Capsule
               _sid(98045062, 1): 446, _sid(98045062, 2): 447}             # Enemy Controller
+# §41 (OPT2): SELECT_OPTION de DOS opciones que en el cliente 2008 eran una pregunta SÍ/NO (no una ventana de textos): (passcode,
+# n0, n1) -> (dlg, carta del nombre, número). SÍ = la opción de índice 0. Textos del cliente: 233 «Para mantener "%s" en el Campo
+# hace falta 1 monstruo como Tributo. ¿Quieres ofrecer un monstruo?» (Yubel: Tributo de otro monstruo o se destruye; P),
+# 298 «¿Darás la mano a tu oponente?» (Yu-Jo Friendship: el rival acepta o rechaza el apretón; 299/300 son su pareja; P)
+OPTION_YN = {(78371393, 3, 4): (233, "self", None),      # Yubel
+             (81332143, 0, 1): (298, None, None)}        # Yu-Jo Friendship
+
+
+def _option_key(desc):
+    """Descripción de SELECT_OPTION -> clave de OPTION_DLG. Este ocgcore (wasm 0.1.2) manda aux.Stringid(código, n) como
+    código << 20 | n (verificado con Enemy Controller / Stratos en duelcore); la tabla se emparejó con código << 4 | n.
+    Los textos del sistema (< 2**20: 70-72, 1213, 1214…) se quedan tal cual."""
+    desc = int(desc)
+    if desc >> 20 and (desc & 0xfffff) < 16:
+        return _sid(desc >> 20, desc & 0xfffff)
+    return desc
+
+
+def _desc_card(desc):
+    """description de ocgcore -> (passcode de la carta, n) si es aux.Stringid(código, n) = código << 20 | n; si es un texto del
+    sistema (!system N de strings.conf) -> (0, desc). §41."""
+    desc = int(desc or 0)
+    if desc >> 20 and (desc & 0xfffff) < 16:
+        return desc >> 20, desc & 0xfffff
+    return 0, desc
+
+
 OPT_YES, OPT_NO = 1213, 1214    # Duel.SelectOption(tp, 1213, 1214) (Magic Drain, Call of the Earthbound) = SÍ / NO
 DLG_MAGIC_DRAIN = 11            # «¿Deseas descartar una Carta Mágica de tu mano?» (Magic Drain, la del rival)
 
@@ -403,6 +473,24 @@ def hand_seed_for(old, want, rng=random, tries=HAND_SEED_TRIES):
                 return seed, arr
     return None
 
+def client_monst_perm(seed, n):
+    """Reparto que deja el 0x49 del cliente (FUN_00714ea0) con esta semilla: la carta de la ranura S[i] (S = ranuras de
+    la máscara en orden) pasa a la S[perm[i]]. Es el mismo Fisher-Yates + LCG que la mano."""
+    return client_hand_perm(seed, n)
+
+
+def monst_seed_for(want, rng=random, tries=200000):
+    """Semilla de 32 bits con la que el 0x49 del cliente reparte las cartas como `want` (want[i] = índice, dentro de las
+    ranuras de la máscara, al que va la carta de la i-ésima). Con n <= 5 hay <= 120 repartos: se prueba al azar."""
+    n = len(want)
+    want = list(want)
+    for _ in range(tries):
+        seed = rng.getrandbits(32)
+        if client_monst_perm(seed, n) == want:
+            return seed
+    return rng.getrandbits(32)                               # inalcanzable con n <= 5; el cliente barajaría distinto
+
+
 # 07-10 (P0a): las banderas del traductor aprobadas por el owner van encendidas por defecto; cada una tiene su
 # variable YO2_* (=0 la apaga al arrancar) para las pruebas que suponían el valor viejo.
 _TRON = lambda k, d="1": os.environ.get(k, d) not in ("", "0")
@@ -452,10 +540,38 @@ DEFAULT_CFG = {
     # repetición de batalla, 31 «¿atacar directamente?»…) -> su texto del cliente (YESNO_SYS_DLG: 223, 225…) en vez del
     # genérico 269 «¿activar el efecto de la carta?». P (texto). YO2_YESNO_SYS_TEXT=0 lo apaga (= 269 siempre)
     "yesno_sys_text": _TRON("YO2_YESNO_SYS_TEXT"),
+    # §41 (OPT2): SÍ/NO de una carta (Ryko «¿Destruir esta carta?», Judgment of Anubis, Messenger of Peace…) con SU texto del cliente
+    # (YESNO_DLG: C = lo manda así el duellog oficial, P = emparejado por el texto) y las Six Samurai con «¿Destruir otra
+    # carta en lugar de "X"?». La description de ocgcore es código << 20 | n (se leía como código << 4: nunca coincidía).
+    # YO2_YESNO_TEXTS=0 = como antes (genérico 269)
+    "yesno_texts": _TRON("YO2_YESNO_TEXTS"),
+    # §41: Yubel y Yu-Jo Friendship (SELECT_OPTION de dos efectos que el cliente 2008 preguntaba con un SÍ/NO) -> OPTION_YN.
+    # P (texto 233 / 298). YO2_OPTION_YN=0 = decide bot.ts (índice 0), como antes
+    "option_yn": _TRON("YO2_OPTION_YN"),
+    # §41: CONFIRM_CARDS de la mano ENTERA de un jugador (Trap Dustshoot, Crush Card Virus, Royal Tribute, The Forceful Sentry…) ->
+    # 0x52 [1] / 0x52 [0] como el oficial (34 usos en los duellogs 2009) en vez de un 0x51 por carta (que abre su panel de
+    # detalle una y otra vez). Al elegir en esa mano (opp_hand_pick) la carta elegida lleva su 0x29 (zona 0xb) y luego el
+    # 0x52 [0]. C (secuencia) / P (cómo lo pinta el cliente). YO2_HAND_OPEN=0 = los 0x51 de antes
+    "hand_open": _TRON("YO2_HAND_OPEN"),
+    # §41: ANNOUNCE_NUMBER con el título y la etiqueta de la carta que lo pide (Card Trooper 330/331 del oficial; Sixth Sense 296).
+    # YO2_NUMBER_TEXTS=0 = los genéricos de antes (594 «Elige una cantidad» / «%d»)
+    "number_texts": _TRON("YO2_NUMBER_TEXTS"),
     # NOTES §23 (LP): 0x17 BATTLE_RUN con el daño REAL (los DAMAGE que siguen al BATTLE), no el calculado con ATK/DEF.
     # Un daño anunciado y no hecho dejaba el marcador de LP del cliente con -N en espera y el siguiente igual lo
     # restaba dos veces (pvp1010 22:44:28 -> Player1 con 0 LP y 600 de verdad). C. YO2_BATTLE_DAMAGE_REAL=0 lo apaga
     "battle_damage_real": _TRON("YO2_BATTLE_DAMAGE_REAL"),
+    # B67 (jugadores, Ojama Trio: «muestra el daño total, luego el de batalla y luego el del efecto de la ficha»).
+    # ocgcore manda BATTLE, DAMAGE (batalla), MOVE (el destruido), DAMAGE (efecto: la ficha de Ojama hace 300 al irse
+    # del campo) y DAMAGE_STEP_END: el 0x17 sumaba los dos DAMAGE y el marcador de LP del cliente enseñaba el total
+    # antes de contar cada cifra. En los duellogs oficiales de 2009 el 0x17 lleva SOLO el daño de batalla (la cifra de
+    # su 0x25 siguiente, 18 de 18) y el daño de efecto sale aparte. Con esto, el daño de batalla es el que llega
+    # antes del primer MOVE tras el BATTLE; lo demás es de efecto.  C. YO2_BATTLE_DAMAGE_SPLIT=0 lo apaga
+    "battle_damage_split": _TRON("YO2_BATTLE_DAMAGE_SPLIT"),
+    # B67: P1 de 0x25 (tipo de daño). Duellogs oficiales (304 partidas, 0x6202 de 2009): 1 = daño de batalla (339 veces,
+    # y siempre es el que sigue a un 0x17 con la misma cifra), 0 = daño de efecto (156), 2 = coste de LP (100); nuestro
+    # traductor mandaba al revés (0 batalla / 1 efecto). El cliente solo lo usa para sus estadísticas del duelo
+    # (FUN_00716440: duel_stats_empty), no cambia lo que se ve.  C. YO2_LP_TYPE_OFICIAL=0 lo apaga (= el orden de antes)
+    "lp_type_oficial": _TRON("YO2_LP_TYPE_OFICIAL"),
     # Red de seguridad (regla NUESTRA, no del oficial, pedida el 07-10): al empezar cada turno, 0x26 LIFE_SET con los
     # LP del espejo para los dos (marcador y LP del cliente = ocgcore). §24: la sustituye lp_reconcile y queda APAGADA
     # por defecto (en el vivo ya estaba a False a mano). YO2_LP_RESYNC=1 la enciende
@@ -576,6 +692,12 @@ DEFAULT_CFG = {
     # que NO está comprobado es cuándo se cierra el panel (puede quedarse puesto): probar en vivo antes de dejarlo  D
     "pick_panel": False,
     "activate_flash": False, # destello 0x30 al activar una carta del campo (trampas/magias de la NPC no se veían)
+    # NOTES §35 (bug #2 «Effect activation visuals & sfx not displayed»): CADA activación (CHAINING de ocgcore) manda, como
+    # el oficial, 0x2e (revelar la carta: vista 0x13 si viene de la mano + 0x43 + 0x21 CARD_HAPPEN = destello, sonido y
+    # panel) justo antes del 0x12, y el 0x12 lleva el UID en P1 (antes: índice en la mano / 0). Las 1356 activaciones de
+    # los 100 duellogs oficiales de 2009 son así. Sustituye al 0x2f (hand/cementerio) y a activate_flash/0x30 (campo).
+    # C (oficial: 1356/1356) / C (vistas) / D (los bits altos de P0, que el cliente no lee). YO2_CHAIN_REVEAL=0 lo apaga
+    "chain_reveal": _TRON("YO2_CHAIN_REVEAL"),
     # objetivo de ataque tras «Atacar»: 0x1b B=0xc (atacante, P2 = -1) + 0x1b B=0xb (estado 3: la espada sale del
     # atacante y sigue al ratón). Clic derecho (0x6351) cancelable -> 0x1b B=0xa (estado 1). C (código), sin probar vivo
     "attack_aim": True,
@@ -587,6 +709,15 @@ DEFAULT_CFG = {
     # elegir 1, 6+n = exactamente n, 0x27+max = de 1 a max); respuestas 0x6426/0x6432 + 0x6423. Antes: máscaras en la
     # pila, el cliente manda siempre índice 0 y el duelo se paraba (Reinforcement of the Army). Audit duelo_menus §7  C
     "list_picks": True,
+    # Opción del cliente «Auto Card Placing» (Opciones; texto 6523, OFF = «You decide which position the card will go»,
+    # 6533). El cliente manda su valor en el u8 de 0x61fe (FUN_00692060, que lleva DAT_012bb6b0+0x436 = NO(casilla
+    # 0x191); por defecto la casilla está ON -> 0 = automática, 1 = manual; en los logs vivos salen los dos). Con la
+    # colocación MANUAL el SELECT_PLACE de ocgcore (invocar/colocar un monstruo, colocar una M/T) se le pregunta al
+    # jugador: 0x800 en las zonas vacías permitidas (un clic en una zona vacía manda 0x6350 (j, zona, i, 0xb), duelo_menus
+    # §1 / H13). Sin esta bandera (o con la automática) el servidor elige la primera zona libre, como hasta ahora. C
+    # (el cliente: mapeo del u8 y clic en la zona) / D (que el servidor oficial preguntase así). YO2_COLOCACION_MANUAL=0
+    # la apaga (= siempre automática)
+    "place_manual": _TRON("YO2_COLOCACION_MANUAL"),
     # Vínculo carta -> carta (NOTES «Vínculo carta-objetivo / equipo»). EQUIP de ocgcore -> motor 0x42 (animación
     # CEquipEffect de la carta de equipo al monstruo + entrada de tipo link_kind_equip en la lista del monstruo); re-
     # equipar a otro monstruo / UNEQUIP -> 0x37 (borra el vínculo). CARD_TARGET (Círculo Atahechizos, Call of the
@@ -601,12 +732,22 @@ DEFAULT_CFG = {
     "link_target_anim": True,  # CARD_TARGET con 0x42 (animación) o con 0x36 tipo link_kind_target (silencioso)  D
     # BECOME_TARGET (objetivos al activar) -> 0x29 CARD_LOCKON sobre cada carta del campo o de la mano  C/P
     "target_lockon": True,   # 06-10: activado con el OK del owner
+    # NOTES §35 (bug #8 «cartas que señalan el Cementerio sin indicar cuál»): BECOME_TARGET sobre una carta del
+    # CEMENTERIO / DESTERRADAS -> 0x29 con zona 0xe / 0xf, como el oficial (66 en los duellogs). El cliente sube esa carta a
+    # la cima de su pila y abre la vista 0x17 (cementerio) antes del 0x18 CARD_LOCKON. C. YO2_LOCKON_PILE=0 lo apaga
+    # (= solo campo y mano, como hasta ahora)
+    "lockon_pile": _TRON("YO2_LOCKON_PILE"),
     # --- «Motor: lo que faltaba» (NOTES §14) -------------------------------------------------------------------------
     # ADD_COUNTER / REMOVE_COUNTER de una carta del campo -> 0x3c (contador visible + el cliente recalcula su ATK:
     # Breaker +300 por contador de magia, FUN_006fae40 caso 0x1617). Antes se ignoraban.  C
     "counters": True,
     # SWAP (Intercambio de Criaturas) -> 0x3e. Antes se ignoraba y el cliente se desincronizaba.  C
     "swap_cmd": True,
+    # SHUFFLE_SET_CARD (Magical Hats) -> 0x49 MONST_SHUFFLE como el oficial (1 caso en los 360 duellogs oficiales: B = 0x49,
+    # P0/P1 = semilla, P2 = máscara de ranuras). La semilla se ELIGE para que el RNG del cliente deje las cartas donde
+    # las puso ocgcore (NOTES MIS-1).  C (comando) / P (que el oficial lo usara para todos los barajes de colocadas)
+    # YO2_MONST_SHUFFLE=0 lo apaga (= ignorar el mensaje, como antes: el espejo y el cliente se desincronizan).
+    "monst_shuffle": _TRON("YO2_MONST_SHUFFLE"),
     # MOVE campo -> campo (cambio de control, mover de zona) -> 0x3d (conserva efectos/contadores/vínculos de la
     # ranura, como el oficial) en vez de 0x41 por uid. False = 0x41 como antes.  C (manejador) / P (que el oficial lo
     # usara para el cambio de control: marca 0x400 solo si cambia el jugador)
@@ -627,6 +768,13 @@ DEFAULT_CFG = {
     # 0x4b/0x4c vayan antes que 0x4d: C. Que 0x4d vaya entre los materiales y el 0x2d (y no después): P/D -> APAGADO
     # hasta verlo en vivo
     "fusion_anim": _TRON("YO2_FUSION_ANIM"),   # 07-10: activado por defecto con el OK del owner (=0 lo apaga)
+    # B67 (jugadores: «la Invocación por Fusión deja un efecto visual residual»). Orden del oficial, sacado de los duellogs
+    # de 2009 (28 fusiones con materiales, todas iguales): 0x4b de TODOS los materiales primero (P1 = 0, 1…), luego por material 0x4c y
+    # su movimiento SIN destrucción (mano -> cementerio 0x3f, campo -> cementerio 0x40, desterrados 0x33), después 0x4d y
+    # el 0x2d. El traductor mandaba 0x4b, 0x4c y 0x31 (CARD_BREAK = la animación de DESTRUCCIÓN) por material, uno tras otro,
+    # encima de la marca de material que ya vuela. C (orden, formato del 0x4b/0x4c/0x4d) / D (qué parte se veía como
+    # residuo: no se pudo probar con el cliente). YO2_FUSION_OFICIAL=0 vuelve al orden anterior
+    "fusion_official": _TRON("YO2_FUSION_OFICIAL"),
     # Barra TIME (mensaje de red 0x6461 DUEL_TIMEUP_WARNING, FUN_00692bf0: u8 lado, s32 segundos, u8 pausado, s32 -1).
     # El cliente la pinta con máximo FIJO 0xb4 = 180 s (FUN_00799d80) y descuenta solo con time(); nada más escribe ese
     # reloj y al llegar a 0 NO manda nada (C). Solo se ve con la opción de tiempo de la sala (DAT_012bb6b0+0xc2) o en
@@ -705,6 +853,12 @@ DEFAULT_CFG = {
     # (vista 0x24 en la «ranura» 0x10, que FUN_00760f40 no tiene), así que solo es fidelidad de red. YO2_TURN_COUNTER_
     # PLAYER=0 lo apaga
     "turn_counter_player": _TRON("YO2_TURN_COUNTER_PLAYER"),
+    # NOTES §40: SELECT_CARD cuyas candidatas están en la MANO DEL RIVAL (Trap Dustshoot, The Forceful Sentry, Confiscation,
+    # Lightforce Sword…) -> el jugador elige él (antes decidía bot.ts al azar). Secuencia del oficial (duellogs 2009,
+    # Dustshoot): lista A [(244, 2)] + 0x1b B=0x32 (0xff, 244, 1), identidad de la mano (CONFIRM_CARDS, ya hecho) y
+    # petición de clase 8 con las máscaras sobre la mano del rival. C (secuencia) / P (que el cliente deje pulsar ahí).
+    # YO2_OPP_HAND_PICK=0 lo apaga (= decide bot.ts, como antes)
+    "opp_hand_pick": _TRON("YO2_OPP_HAND_PICK"),
 }
 
 
@@ -867,11 +1021,14 @@ class YO2Duel:
     _field_seen = {}                 # B23: uid boca arriba en la SZONE 5 de cada jugador, visto en la última mirada
     fusion_armed = False             # HINT 511 visto: los MOVE de monstruos a la pila pueden ser materiales de fusión
     fusion_mats = ()                 # uids de los materiales ya anunciados con 0x4b/0x4c (índice = posición)
+    fusion_started = ()              # B67 (fusion_official): los que ya tienen su 0x4c (los 0x4b salen todos al principio)
+    battle_open = False              # B67: tras un BATTLE y antes del primer MOVE: los DAMAGE son de batalla
     list_dirty = False               # CIERRE_MINIATURA: hay 0x4b/0x4c en la cola del cliente sin ejecutar (escriben
                                      # DAT_012ccb34[i] con el id INTERNO; 0x6610 se aplica al llegar, el 0x32 en cola)
     timer_deadline = None            # turn_timer: instante (clock()) en que se acaba el turno del jugador 0
     ocg_phase = None                 # §20: última fase de ocgcore (NEW_PHASE; 0x200 = End Phase, que PHASE_MAP no tiene)
     discard_open = False             # §20: el cliente tiene el panel de descarte (DAT_012cc3aa != 0)
+    hand_open = None                 # §41: jugador (de esta vista) cuya mano entera se enseña con 0x52 [1] (hand_open); None = ninguna
     # §24 (lp_reconcile). Valores de clase: un duelo creado antes de la carga en caliente los hereda (hud None = el
     # modelo se crea en su próximo evento con los LP del espejo de ese momento: se supone que entonces cuadraba)
     hud = None                       # marcador de LP del cliente, por jugador de esta vista: [número, pendiente, espera]
@@ -883,6 +1040,7 @@ class YO2Duel:
     lp_desync = ()                   # PANEL: los últimos _LP_KEEP desfases (dicts; lista NUEVA en cada uno)
     lp_anim = frozenset()            # §31: jugadores con un 0x24/0x25/0x17 en este lote/decisión (el marcador aún cuenta)
     _LP_EVENTS = ("DAMAGE", "RECOVER", "PAY_LPCOST", "LPUPDATE")
+    _HAND_KEEP = ("CONFIRM_CARDS", "CONFIRM_DECKTOP", "HINT", "CARD_HINT", "RETRY")   # §41: no cierran la mano abierta (hand_open)
     _LP_KEEP = 50
     clock = staticmethod(time.monotonic)
     _DISARM = ("CHAINING", "CHAIN_SOLVED", "CHAIN_END", "NEW_TURN", "NEW_PHASE", "SUMMONING", "SPSUMMONING", "SET")
@@ -965,6 +1123,7 @@ class YO2Duel:
         self.links = ()              # card_link: ((uid origen, uid destino, tipo), …) colgados en el cliente
         self.summoning = []          # summon_done: [(uid, P1 de 0x45)] invocándose (bit 3 puesto en el cliente)
         self.ritual_mats = set()     # §33: uids elegidos como sacrificio de un ritual (mano/campo): su MOVE -> 0x46
+        self.place_manual = False    # opción «Auto Card Placing» OFF del cliente (u8 de 0x61fe != 0); lo pone la sesión
 
     # ================================================================================== utilidades de estado ======
     def _new_card(self, owner, serial, code):
@@ -1117,8 +1276,12 @@ class YO2Duel:
             if self.pending is not None:
                 out += self._flush_pending(ev)
             self._track_trigger(ev)
+            if t in self._BATTLE_CLOSE:
+                self.battle_open = False       # B67: lo que llega después ya no es el daño de batalla (_battle_damage_ahead)
             self._lp_note(ev, t)
             fn = getattr(self, "_m_" + str(t), None)
+            if self.hand_open is not None and t not in self._HAND_KEEP:
+                out += self._hand_close()        # §41: la mano enseñada se cierra (0x52 [0]) con lo primero que pasa después
             if fn:
                 out += fn(ev) or []
             elif t not in IGNORED:
@@ -1128,7 +1291,7 @@ class YO2Duel:
                     self.ritual_mats = set()                # §33: los sacrificios del ritual ya se movieron
             if t in self._DISARM:
                 self.tribute_armed = self.fusion_armed = False
-                self.fusion_mats = ()
+                self.fusion_mats = self.fusion_started = ()
             if self.pending is None:
                 out += self._field_check()
             # §24: tras cada cambio de LP del motor, el marcador de ESE jugador
@@ -1139,6 +1302,8 @@ class YO2Duel:
             out += self._lp_watch(out, (0, 1), ev.get("lp"))     # §24: antes de pedir la jugada, los dos
             self.lp_anim = frozenset()                           # §31: el jugador decide: el marcador ya habrá contado
             sel = self._on_select(ev)
+            if self.hand_open is not None and (self.state or {}).get("kind") != KIND_OPP_HAND:
+                out += self._hand_close()        # §41: se queda abierta solo mientras se elige en ella (Dustshoot…)
             self._hud_track(sel)
             return out + sel
         elif kind == "end":
@@ -1148,6 +1313,9 @@ class YO2Duel:
                 out += self._finish(2 if w is None else w, ev.get("reason"))
             self._hud_track(out)
         return [(0x6202, m) if isinstance(m, bytes) else m for m in out]
+
+    # B67: mensajes que cierran el «daño de batalla» abierto por BATTLE (los mismos que corta _battle_damage_ahead)
+    _BATTLE_CLOSE = ("MOVE", "CHAINING", "ATTACK", "ATTACK_DISABLED", "DAMAGE_STEP_END", "NEW_PHASE", "NEW_TURN", "WIN")
 
     # --- §24: marcador de LP del cliente y reconciliación (lp_reconcile) ------------------------------------------
     def _hud_init(self):
@@ -1473,11 +1641,19 @@ class YO2Duel:
             # CFusionEffectTask (FUN_007b4690) copia los n ids de material de la tabla de la lista 0x6610 MODO 0xfe
             # (0x12be194; FUN_006929b0 solo la escribe con ese modo y no abre ventana): se manda antes  C
             mats = self.fusion_mats
+            if self.cfg.get("fusion_official", DEFAULT_CFG.get("fusion_official")):
+                # B67: un 0x4b sin su 0x4c deja la marca de material sin arrancar (solo la quitan las vistas 0x2a/0x2d de
+                # cancelar): los que no llegaron a moverse en este lote se arrancan aquí
+                for m in mats:
+                    if m not in self.fusion_started:
+                        pm, wm, im = self.find(m)
+                        out.append(engine(C_FUSION_MAT, pm, self.yo2_zone(wm, im)[0] if wm == "mz" else PILE_ZONE[wm],
+                                          mats.index(m), m))
             body = b"".join(struct.pack(">4H", self._yo2(self.cards[m].code) & 0x3fff, (m >> 1) & 0xff,
                                         self.cards[m].owner & 1, 0) for m in mats)
             out.append((M_LIST, struct.pack(">BIIII", 0, LIST_FUSION, 0, len(mats), 0) + body))
             out.append(engine(C_FUSION_RUN, p, 0, uid, len(mats) & 0xff))
-            self.fusion_mats = ()
+            self.fusion_mats = self.fusion_started = ()
             self.fusion_armed = False
         out.append(cmd)
         if fx is not None:
@@ -1514,7 +1690,10 @@ class YO2Duel:
             idx = len(dst_pile)
         else:
             idx = len(dst_pile)
-        out += self._fusion_material(uid, p_from, w_from, i_from, where)
+        fmat = self._fusion_material(uid, p_from, w_from, i_from, where)
+        out += fmat
+        # B67: un material de fusión que sale del campo NO se destruye (el oficial: 0x40, un movimiento sin CARD_BREAK)
+        plain = bool(fmat) and bool(self.cfg.get("fusion_official", DEFAULT_CFG.get("fusion_official")))
         if uid in self.ritual_mats and where == "grave" and w_from in ("mz", "hand"):
             # §33: sacrificio de un ritual, como el oficial: 0x46 (ranura o 0xb = mano, 0xe, uid)  C
             self.ritual_mats = set(self.ritual_mats) - {uid}
@@ -1527,13 +1706,16 @@ class YO2Duel:
             if self.cfg.get("tribute_mark"):
                 out.append(engine(C_TRIBUTE_MARK, p_from, slot & 0xff, 0, 0))
             out.append(engine(C_TRIBUTE, p_from, slot & 0xff, ZONE_GRAVE, uid))
-        elif w_from == "mz" and where == "grave":
+        elif w_from == "mz" and where == "grave" and not plain:
             # al cementerio desde una zona de monstruo: con animación de destrucción (0x31)
             slot, _ = self.yo2_zone(w_from, i_from)
             out.append(engine(C_TO_GRAVE, p_from, slot & 0xff, ZONE_GRAVE, uid))
         else:
+            # P2 = 0x20 en los materiales de fusión que van al cementerio (oficial: 14 de 14 tras el 0x4c; ninguna otra
+            # 0x3f/0x40 lo lleva): el cliente pone el valor 2 en los bits 16-17 de la palabra de la carta  (B67)
             out.append(engine(C_MOVE, p_from, self._packed_src(uid),
-                              (p & 1) | ((PILE_ZONE[where] & 0x1f) << 1) | ((idx & 0xff) << 6), 0))
+                              (p & 1) | ((PILE_ZONE[where] & 0x1f) << 1) | ((idx & 0xff) << 6),
+                              0x20 if plain and where == "grave" else 0))
         self._remove(uid)
         c.face = where in ("grave", "banish") or (where == "hand" and p == 0)
         c.defense = False
@@ -1605,7 +1787,7 @@ class YO2Duel:
                 self.tribute_armed = True
             elif ev.get("hint") == HINTMSG_FMATERIAL and not self.fusion_armed:
                 self.fusion_armed = True
-                self.fusion_mats = ()
+                self.fusion_mats = self.fusion_started = ()
         return []
 
     def _tribute_ahead(self):
@@ -1646,10 +1828,69 @@ class YO2Duel:
                 or w_from not in ("mz", "hand", "grave", "deck") or where not in ("grave", "banish", "deck"):
             return []
         zone = self.yo2_zone(w_from, i_from)[0] if w_from == "mz" else PILE_ZONE[w_from]
+        if self.cfg.get("fusion_official", DEFAULT_CFG.get("fusion_official")):
+            return self._fusion_material_oficial(uid, p_from, zone)
         i = len(self.fusion_mats)
         self.fusion_mats = tuple(self.fusion_mats) + (uid,)
         self.list_dirty = True
         return [engine(C_FUSION_MARK, p_from, zone, i, uid), engine(C_FUSION_MAT, p_from, zone, i, uid)]
+
+    def _fusion_material_oficial(self, uid, p_from, zone):
+        """B67: el orden del oficial. Con el primer material salen los 0x4b de TODOS los que se van a mover en este lote
+        (P1 = 0, 1…); cada material lleva luego solo su 0x4c (el cliente busca la marca por la posición REAL de la carta
+        en ese momento: mano = su sitio en la mano, campo = ranura, y al arrancar una de la mano baja el índice de las
+        demás, por eso no hay que repetir nada). Si no hay lote (feed suelto) o el material no estaba en la vista previa,
+        se marca ahora, como antes."""
+        out = []
+        if not self.fusion_mats:
+            ahead = self._fusion_ahead()
+            uids = [u for u, _, _, _ in ahead]
+            if uid not in uids:
+                uids.insert(0, uid)
+            self.fusion_mats = tuple(uids)
+            self.fusion_started = ()
+            for k, u in enumerate(uids):
+                pu, wu, iu = self.find(u)
+                out.append(engine(C_FUSION_MARK, pu, self.yo2_zone(wu, iu)[0] if wu == "mz" else PILE_ZONE[wu], k, u))
+        elif uid not in self.fusion_mats:
+            out.append(engine(C_FUSION_MARK, p_from, zone, len(self.fusion_mats), uid))
+            self.fusion_mats = tuple(self.fusion_mats) + (uid,)
+        out.append(engine(C_FUSION_MAT, p_from, zone, self.fusion_mats.index(uid), uid))
+        self.fusion_started = tuple(self.fusion_started) + (uid,)
+        self.list_dirty = True
+        return out
+
+    _FUSION_STOP = ("SPSUMMONING", "SUMMONING", "SET", "CHAINING", "CHAIN_SOLVED", "CHAIN_END", "NEW_PHASE", "NEW_TURN")
+
+    def _fusion_ahead(self):
+        """B67: los materiales de la fusión que traen los MOVE del resto del lote (desde el MOVE en curso): monstruos de
+        campo, mano, cementerio o mazo que van al cementerio, a desterradas o al mazo, hasta que llega el monstruo de
+        fusión (MOVE desde el extra) o algo que no es de la fusión. [(uid, jugador, contenedor, índice)] en orden."""
+        if not self._batch or self._bi is None:
+            return []
+        out, used = [], set()
+        for ev in self._batch[self._bi:]:
+            if ev.get("ev") != "msg":
+                break
+            t = ev.get("type")
+            if t == "MOVE":
+                f, to = ev["from"], ev["to"]
+                if f["location"] == OCG_EXTRA:
+                    break
+                if f["location"] not in (OCG_MZONE, OCG_HAND, OCG_GRAVE, OCG_DECK) \
+                        or to["location"] not in (OCG_GRAVE, OCG_REMOVED, OCG_DECK):
+                    continue
+                p, where, i = self.ocg_slot(f["controller"], f["location"], f["sequence"])
+                lst = self.side[p].pile(where) if where else []
+                cand = [u for u in lst if u is not None and u not in used and self.cards[u].code == ev.get("card")]
+                uid = lst[i] if 0 <= i < len(lst) and lst[i] in cand else (cand[0] if cand else None)
+                if uid is not None and self.cm.kind(self.cards[uid].code) == "monster":
+                    used.add(uid)
+                    pu, wu, iu = self.find(uid)
+                    out.append((uid, pu, wu, iu))
+            elif t in self._FUSION_STOP:
+                break
+        return out
 
     def _m_SUMMONING(self, ev):
         self._summon_start(ev, SUMMON_DONE_BITS["SUMMONED"])
@@ -1729,8 +1970,17 @@ class YO2Duel:
         return out
 
     # --- cadena ----------------------------------------------------------------------------------------------------
+    def _chain_reveal(self, pp, zone, where, uid, c):
+        """§35: 0x2e como el oficial. P0 = zona YO2 | bits<<8 (6 = magia/trampa y campo, 8 = monstruo del campo, 0xa = mano /
+        cementerio / desterradas: los tres valores que mandaba Konami; el cliente solo lee el bit 0, que aquí es 0), P1 = id
+        INTERNO de la carta, P2 = su uid. El 0xc de los efectos de monstruo que se disparan solos no se distingue (D): el
+        cliente no lee esos bits."""
+        bits = {"sz": 6, "mz": 8}.get(where, 0xa)
+        return engine(C_REVEAL, pp, zone | bits << 8, self.cm.yo2_to_internal(self._yo2(c.code)) or 0, uid)
+
     def _m_CHAINING(self, ev):
         out = []
+        reveal = self.cfg.get("chain_reveal", DEFAULT_CFG.get("chain_reveal"))
         p = ev["controller"]
         if p == 1 and self.cfg["npc_phrases"]:
             out.append(engine(C_NPC_CHAIN, 1, 0))                         # frase «encadeno»
@@ -1747,17 +1997,25 @@ class YO2Duel:
                     c.face = True
                     out += self._identity(uid, real=True)
                     out.append(engine(C_FLIP, pp, zone, 1, 0))
-                if self.cfg.get("activate_flash"):
+                if reveal:
+                    out.append(self._chain_reveal(pp, zone, where, uid, c))     # §35: como el oficial
+                elif self.cfg.get("activate_flash"):
                     # destello «se activa» sobre la carta del campo: motor 0x30 (FUN_00412981) busca en el campo la
                     # carta boca arriba con ese id INTERNO (FUN_006ec290) y le hace DUEL_VIEW 0x21; si no la encuentra
                     # enseña la carta grande (FUN_0073bbe0, el mismo id que 0x48, que va bien en vivo).  P
                     out.append(engine(C_FLASH, pp, self.cm.yo2_to_internal(self._yo2(c.code)) or 0, 0))
             elif where != "sz":
                 out += self._identity(uid, real=True)
-                # efecto de monstruo / desde la mano o el cementerio: enseñar la carta (0x2f)
-                out.append(engine(C_HAPPEN, pp, self._yo2(c.code)))
+                # efecto de monstruo / desde la mano o el cementerio: enseñar la carta (0x2e del oficial, §35; 0x2f antes)
+                if reveal:
+                    out.append(self._chain_reveal(pp, zone, where, uid, c))
+                else:
+                    out.append(engine(C_HAPPEN, pp, self._yo2(c.code)))
         n = ev.get("chain_size", len(self.chain) + 1)
-        out.append(engine(C_CHAIN_SET, p, zone, hidx if zone == ZONE_HAND else 0, n))
+        # §35: el oficial pone el UID de la carta en P1 del 0x12 (1356/1356); el manejador lo usa para cerrar la marca que
+        # dejó el 0x2e en la mano (FUN_006e5910/006e2d00 + vista 0x13). Sin 0x2e (o sin carta) queda como antes
+        p1 = uid if (reveal and uid is not None) else (hidx if zone == ZONE_HAND else 0)
+        out.append(engine(C_CHAIN_SET, p, zone, p1, n))
         self.chain.append((p, zone))
         code = ev.get("code") or (self.cards[uid].code if uid is not None else None)
         self.chain_codes = tuple(self.chain_codes) + (code,)       # tupla nueva: el valor de clase no se comparte
@@ -1872,8 +2130,10 @@ class YO2Duel:
         return out
 
     def _m_BECOME_TARGET(self, ev):
-        """Objetivos de una activación -> 0x29 CARD_LOCKON (B = jugador de la carta, P0 = ranura o 0xb, P1 = uid).
-        Solo campo y mano: en cementerio/desterradas el cliente sube la carta a la cima de la pila."""
+        """Objetivos de una activación -> 0x29 CARD_LOCKON (B = jugador de la carta, P0 = ranura, 0xb, 0xe o 0xf, P1 = uid).
+        Cementerio / desterradas (§35, lockon_pile): el cliente sube la carta a la cima de su pila y abre la vista 0x17,
+        que es como señalaba el oficial un objetivo del cementerio. Solo cambia el orden de la pila DEL CLIENTE (la imagen
+        de la cima); el espejo sigue el orden de ocgcore porque todo lo demás va por uid."""
         if not self.cfg.get("target_lockon"):
             return []
         out = []
@@ -1882,7 +2142,8 @@ class YO2Duel:
                 continue
             uid = self.uid_at(d.get("controller", 0), d.get("location", 0), d.get("sequence", 0))
             f = self.find(uid) if uid is not None else None
-            if not f or f[1] not in ("mz", "sz", "hand"):
+            pile = bool(f) and f[1] in ("grave", "banish") and self.cfg.get("lockon_pile", DEFAULT_CFG.get("lockon_pile"))
+            if not f or (f[1] not in ("mz", "sz", "hand") and not pile):
                 continue
             z = self.yo2_zone(f[1], f[2])[0]
             out.append(engine(C_LOCKON, f[0], z, uid, 0))
@@ -1895,7 +2156,16 @@ class YO2Duel:
     def _m_DAMAGE(self, ev):
         p, a = ev["player"], ev["amount"]
         self._lp(p, -a)
-        return [engine(C_LP_DAMAGE, p, min(a, 0xffff), 0 if self.in_damage else 1, 0)]
+        if self.cfg.get("lp_type_oficial", DEFAULT_CFG.get("lp_type_oficial")):
+            # oficial: 1 = batalla, 0 = efecto (B67). Con battle_damage_split el daño de batalla es solo el que llega
+            # antes del primer MOVE tras el BATTLE (la ficha de Ojama hace su 300 DESPUÉS de irse del campo)
+            if self.cfg.get("battle_damage_split", DEFAULT_CFG.get("battle_damage_split")):
+                kind = 1 if self.battle_open else 0
+            else:
+                kind = 1 if self.in_damage else 0
+        else:
+            kind = 0 if self.in_damage else 1
+        return [engine(C_LP_DAMAGE, p, min(a, 0xffff), kind, 0)]
 
     def _m_PAY_LPCOST(self, ev):
         p, a = ev["player"], ev["amount"]
@@ -1949,6 +2219,7 @@ class YO2Duel:
         return []
 
     def _m_BATTLE(self, ev):
+        self.battle_open = True
         a, t = ev["card"], ev.get("target") or {}
         dmg = [0, 0]
         flags = 0
@@ -1991,14 +2262,18 @@ class YO2Duel:
         if not self._batch or self._bi is None:
             return None
         dmg = [0, 0]
+        # B67: ocgcore manda BATTLE, DAMAGE (batalla), MOVE (el destruido) y, después, los DAMAGE de efecto al irse la carta
+        # (ficha de Ojama: 300). Solo cuenta el de antes del primer MOVE: el oficial lleva ese solo en el 0x17
+        stop = ("DAMAGE_STEP_END", "BATTLE", "ATTACK", "ATTACK_DISABLED", "CHAINING", "NEW_PHASE", "NEW_TURN", "WIN")
+        if self.cfg.get("battle_damage_split", DEFAULT_CFG.get("battle_damage_split")):
+            stop += ("MOVE",)
         for ev in self._batch[self._bi + 1:]:
             if ev.get("ev") != "msg":
                 break
             t = ev.get("type")
             if t == "DAMAGE":
                 dmg[ev["player"] & 1] += ev["amount"]
-            elif t in ("DAMAGE_STEP_END", "BATTLE", "ATTACK", "ATTACK_DISABLED", "CHAINING", "NEW_PHASE",
-                       "NEW_TURN", "WIN"):
+            elif t in stop:
                 break
         return dmg
 
@@ -2067,17 +2342,145 @@ class YO2Duel:
                          f"la mano y se refresca la imagen de cada índice")
         return [engine(C_HAND_SHUFFLE, p, seed & 0xffff, seed >> 16)] + self._reimpose(p, "hand")
 
+    def _m_SHUFFLE_SET_CARD(self, ev):
+        """Barajar monstruos colocados (Magical Hats) -> 0x49 MONST_SHUFFLE (FUN_00714ea0, NOTES MIS-1). El cliente elige la
+        permutación él solo: toma las ranuras de P2 (máscara) en orden, las baraja con Fisher-Yates y el LCG de MSVC
+        sembrado con P1<<16 | P0 (el mismo de la mano) y mueve el REGISTRO ENTERO de cada ranura (carta, cara,
+        posición, valor): la carta de la ranura S[i] pasa a la ranura S[perm[i]]. Como con la mano, se ELIGE la semilla
+        con la que ese reparto coincide con el de ocgcore. Los uid viajan con la carta: no hace falta 0x40 ni 0x1d.
+        Qué ranuras entran lo dice el mensaje; DÓNDE acaba cada carta, no (el core de EDOPro de ocgcore-wasm escribe
+        la 2.ª lista a ceros): ver _shuffle_dest."""
+        if not self.cfg.get("monst_shuffle"):
+            return []
+        groups = {}
+        for c in ev.get("cards") or []:
+            f = c.get("from") or {}
+            if f.get("location") != OCG_MZONE:
+                self._warn(f"SHUFFLE_SET_CARD fuera de la zona de monstruos {f}: se ignora")
+                return []
+            groups.setdefault(f["controller"] & 1, []).append(c)
+        out = []
+        for p, cs in sorted(groups.items()):
+            slots = sorted(c["from"]["sequence"] for c in cs)
+            mz = self.side[p].mz
+            if len(set(slots)) != len(slots) or any(not 0 <= s < 5 or mz[s] is None for s in slots):
+                self._warn(f"SHUFFLE_SET_CARD J{p} {slots}: ranuras repetidas o vacías en el espejo; se ignora")
+                continue
+            if len(slots) < 2:
+                continue                                      # el cliente no hace nada con menos de 2 ranuras (return)
+            mv = self._shuffle_dest(p, cs, slots)
+            if mv is None:
+                continue
+            want = [slots.index(mv[s]) for s in slots]        # índice destino de cada ranura de origen
+            seed = monst_seed_for(want)
+            old = [mz[s] for s in slots]
+            for s, u in zip(slots, old):
+                mz[mv[s]] = u
+            mask = sum(1 << s for s in slots)
+            out.append(engine(C_MONST_SHUFFLE, p, seed & 0xffff, seed >> 16, mask))
+        return out
+
+    def _shuffle_dest(self, p, cs, slots):
+        """-> {ranura origen: ranura destino} de un SHUFFLE_SET_CARD, o None (y aviso) si no se puede saber.
+        1) Si el mensaje trae la 2.ª lista bien (`to` en la zona de monstruos del mismo jugador y con las mismas
+           ranuras), es el reparto.
+        2) Si no (así sale del ocgcore-wasm 0.1.2: la 2.ª lista son ceros, medido con 75 mensajes de Magical Hats), se
+           saca de lo que ocgcore dice que hay AHORA en cada ranura: si una carta de ese hueco sale después en este
+           mismo lote (MOVE desde esa ranura: las de Magical Hats se destruyen al acabar la Battle Phase), su código;
+           si no, el de la query de duelcore. Las cartas se emparejan por código (las iguales son intercambiables) y
+           las que ya están donde toca se quedan quietas."""
+        mz = self.side[p].mz
+        to = [c.get("to") or {} for c in cs]
+        if all(t.get("location") == OCG_MZONE and (t.get("controller", p) & 1) == p for t in to):
+            mv = {c["from"]["sequence"]: t["sequence"] for c, t in zip(cs, to)}
+            if sorted(mv.values()) == slots:
+                return mv
+        now = {s: self.cards[mz[s]].code for s in slots}
+        target = {}
+        state = None
+        for s in slots:
+            code = None
+            for e in (self._batch[self._bi + 1:] if self._batch and self._bi is not None else ()):
+                f = e.get("from") or {}
+                if (e.get("ev") == "msg" and e.get("type") == "MOVE" and f.get("controller") == p
+                        and f.get("location") == OCG_MZONE and f.get("sequence") == s):
+                    code = e.get("card")
+                    break
+            if not code:
+                if state is None and self.query is not None:
+                    try:
+                        state = self.query() or {}
+                    except Exception as ex:                   # noqa: BLE001
+                        self._warn(f"query falló: {ex!r}")
+                        state = {}
+                pl = (state or {}).get("players") or []
+                zone = (pl[p].get("mzone") or []) if p < len(pl) else []
+                cd = zone[s] if s < len(zone) else None
+                code = cd.get("code") if cd else None
+            target[s] = code
+        if sorted(target.values(), key=str) != sorted(now.values(), key=str):
+            self._warn(f"SHUFFLE_SET_CARD J{p} {slots}: no sé dónde ha quedado cada carta (espejo {list(now.values())}, "
+                       f"ocgcore {list(target.values())}); no se manda 0x49")
+            return None
+        mv, used = {}, set()
+        for s in slots:                                       # las que ya están donde toca
+            if target[s] == now[s]:
+                mv[s] = s
+                used.add(s)
+        for s in slots:
+            if s not in mv:
+                t = next(t for t in slots if t not in used and target[t] == now[s])
+                mv[s] = t
+                used.add(t)
+        return mv
+
     def _m_CONFIRM_CARDS(self, ev):
         out = []
-        for cd in ev.get("cards", []):
+        cards = ev.get("cards", [])
+        whole = self._whole_hand(cards)
+        for cd in cards:
             uid = self.uid_at(cd["controller"], cd["location"], cd["sequence"])
             if uid is None:
                 continue
             self.cards[uid].code = cd.get("code") or self.cards[uid].code
             out += self._identity(uid, real=True)
-            if cd["location"] == OCG_HAND:
+            if cd["location"] == OCG_HAND and whole is None:
                 out.append(engine(C_HAND_SHOW, cd["controller"], uid))
+        if whole is not None:
+            # §41: la mano ENTERA de un jugador (Dustshoot, Crush Card Virus, Royal Tribute…): 0x52 [1] como el oficial en vez de
+            # un 0x51 (y su panel de detalle) por carta; se cierra con 0x52 [0] (_hand_close)
+            out += self._hand_close()
+            out.append(engine(C_HAND_OPEN, whole, 1))
+            self.hand_open = whole
         return out
+
+    def _whole_hand(self, cards):
+        """§41: jugador cuya mano ENTERA (2 o más cartas) enseña este CONFIRM_CARDS, o None (flag hand_open apagado, cartas
+        sueltas, pilas, dos jugadores, o solo algunas de la mano: las demás seguirían ocultas)."""
+        if not self.cfg.get("hand_open", DEFAULT_CFG.get("hand_open")) or len(cards) < 2:
+            return None
+        who = {cd["controller"] for cd in cards if cd["location"] == OCG_HAND}
+        if len(who) != 1 or any(cd["location"] != OCG_HAND for cd in cards):
+            return None
+        p = who.pop()
+        if p not in (0, 1) or len(self.side[p].hand) != len(cards) or len({cd["sequence"] for cd in cards}) != len(cards):
+            return None
+        return p
+
+    def _opp_hand_done(self, st):
+        """§41: acabada la elección en la mano abierta: 0x29 sobre cada carta elegida (zona 0xb, como el oficial) y 0x52 [0]."""
+        out = []
+        for p, zone, idx, i in st["cands"]:
+            if i in st["chosen"] and zone == ZONE_HAND and 0 <= idx < len(self.side[p & 1].hand):
+                uid = self.side[p & 1].hand[idx]
+                if uid is not None:
+                    out.append((0x6202, engine(C_LOCKON, p & 1, ZONE_HAND, uid, 0)))
+        return out + [(0x6202, m) for m in self._hand_close()]      # lo que va al cliente: (id de mensaje, bytes)
+
+    def _hand_close(self):
+        """§41: cierra la mano abierta con 0x52 [0] (lo que el oficial manda al acabar de verla)."""
+        p, self.hand_open = self.hand_open, None
+        return [] if p is None else [engine(C_HAND_OPEN, p, 0)]
 
     _m_CONFIRM_DECKTOP = _m_CONFIRM_CARDS
 
@@ -2805,15 +3208,35 @@ class YO2Duel:
         # lista que ya se veía sin petar: (id interno de la carta, clase 4) o lista vacía.
         code = ev.get("code")
         # SELECT_YESNO (Duel.SelectYesNo del script: «¿destruir 1 carta?» de Ryko al voltearse...) no trae code, solo
-        # description = passcode<<4 | n (aux.Stringid). Sin esto la lista iba vacía y el cliente pintaba basura (06-10).
+        # description = aux.Stringid(passcode, n). Sin esto la lista iba vacía y el cliente pintaba basura (06-10).
         desc = ev.get("description") or 0
-        if not code and desc >= 1 << 20 and self.cm.code_to_yo2(desc >> 4):
-            code = desc >> 4
+        texts = self.cfg.get("yesno_texts", DEFAULT_CFG.get("yesno_texts"))   # §41 (duelo de antes de la carga: DEFAULT)
+        card = self.cfg.get("yesno_card", DEFAULT_CFG.get("yesno_card"))     # §23 (duelo de antes de la carga: DEFAULT)
+        spec = None
+        if texts:
+            # §41: la description de ocgcore es aux.Stringid(código, n) = código << 20 | n. Solo las cartas de YESNO_DLG
+            # tienen el texto de SU pregunta; las demás siguen con el genérico (269) como hasta ahora
+            dcode, dn = _desc_card(desc)
+            if ev.get("type") == "SELECT_EFFECTYN" and code and desc in YESNO_SYS_CARD:
+                spec = (YESNO_SYS_CARD[desc], "self", None)           # «¿Destruir otra carta en lugar de "%s"?» (C)
+            elif not code and dcode:
+                spec = YESNO_DLG.get((dcode, dn))
+                if spec and self.cm.code_to_yo2(dcode):
+                    code = dcode
+        elif not code and desc >= 1 << 20 and self.cm.code_to_yo2(desc >> 4):
+            code = desc >> 4                                          # yesno_texts apagado: la lectura de antes (código << 4)
         y = self.cm.code_to_yo2(code) if code else None          # sin pareja YO2 -> texto genérico, no la tapadera
         if not (y and self.cm.yo2_to_internal(y)):
             code = None
-        card = self.cfg.get("yesno_card", DEFAULT_CFG.get("yesno_card"))     # §23 (duelo de antes de la carga: DEFAULT)
-        if not code:
+        pairs = self._yesno_pairs(spec, code) if spec else None
+        if pairs:
+            # §41: el texto de ESA carta; el nombre (clase 4) y el número (clase 1) como en el oficial. La miniatura
+            # de la carta de la description va igual que en las demás (yesno_card)
+            out = [setcommand(T_LIST_RESET, 0, (len(pairs),))]
+            flat = [v for pr in pairs for v in pr]
+            for k in range(0, len(flat), 8):
+                out.append(setcommand(T_LIST_ADD, 0, tuple(flat[k:k + 8])))
+        elif not code:
             # §25: texto del sistema de ocgcore con pareja en el cliente (30 -> 223 «Reproducir batalla. ¿Continuar
             # para atacar?»…); si no, el genérico. Un duelo de antes de la carga en caliente no lleva la clave: DEFAULT
             text = DLG_CHAIN
@@ -2834,12 +3257,32 @@ class YO2Duel:
 
     _s_SELECT_EFFECTYN = _s_SELECT_YESNO = _yesno
 
+    def _yesno_pairs(self, spec, own_code):
+        """§41: (dlg, carta, número) de YESNO_DLG -> pares de la lista A [(texto, clase)…] como el oficial, o None si falta
+        la carta del nombre (el %s quedaría sin rellenar: mejor el genérico)."""
+        dlg, who, num = spec
+        if who is None and num is None:
+            return [(dlg, 2)]
+        pairs = []
+        if who is not None:
+            code = own_code if who == "self" else who
+            y = self.cm.code_to_yo2(code) if code else None
+            internal = self.cm.yo2_to_internal(y) if y else 0
+            if not internal:
+                return None
+            pairs.append((internal, 4))
+        pairs.append((dlg, 0))
+        if num is not None:
+            pairs.append((int(num), 1))
+        return pairs
+
     # --- elegir cartas ---------------------------------------------------------------------------------------------
     def _pick(self, ev, cands_key, mode):
         cands = []
+        opp_hand = mode == "card" and self.cfg.get("opp_hand_pick", DEFAULT_CFG.get("opp_hand_pick"))   # §40
         for i, d in enumerate(ev.get(cands_key, [])):
             l3 = self._loc_yo2(d)
-            if l3 is None or (l3[1] == ZONE_HAND and l3[0] != 0):
+            if l3 is None or (l3[1] == ZONE_HAND and l3[0] != 0 and not opp_hand):
                 self.state = {"mode": "auto"}                    # mano del rival / sitio raro: decide el bot
                 return []
             cands.append((*l3, i))
@@ -2863,6 +3306,17 @@ class YO2Duel:
             return [(0x6202, setcommand(T_LIST_RESET, 0, (1,))),
                     (0x6202, setcommand(T_LIST_ADD, 0, (DLG_RITUAL_MONSTER, 2))),
                     (0x6202, setcommand(T_VIEW, 0x32, (0xff, DLG_RITUAL_MONSTER, 1)))] + self._pick_request()
+        if not aim and cands and all(c[0] == 1 and c[1] == ZONE_HAND for c in cands) and opp_hand:
+            # §40: elegir en la mano del rival (Dustshoot…). Aviso 244 + clase 8 como el oficial; la identidad de la
+            # mano ya la mandó CONFIRM_CARDS (si el script la enseñó). Con varias a elegir (max > 1) sin aviso: el 244
+            # dice «1 carta»
+            self.state.update(kind=KIND_OPP_HAND, clear=1)
+            panel = []
+            if self.state["max"] == 1:
+                panel = [(0x6202, setcommand(T_LIST_RESET, 0, (1,))),
+                         (0x6202, setcommand(T_LIST_ADD, 0, (DLG_PICK_OPP_HAND, 2))),
+                         (0x6202, setcommand(T_VIEW, 0x32, (0xff, DLG_PICK_OPP_HAND, 1)))]
+            return panel + self._pick_request()
         if not aim:
             panel = []
             if self.cfg.get("pick_panel") and not target and mode in ("card", "tribute"):
@@ -3187,11 +3641,42 @@ class YO2Duel:
         c = next(c for c in st["cands"] if c["i"] == i)
         return self._sum_pick(c)
 
+    def _place_cands(self, ev):
+        """SELECT_PLACE de UNA zona -> {(jugador, ranura YO2): lugar de la respuesta} de las zonas libres que el cliente
+        puede pulsar (ranuras 0-9 de monstruos y M/T; la zona de campo y las extra de monstruos no brillan en el cliente,
+        duelo_menus §0.6). ocgcore marca con 1 las NO disponibles, relativa al que elige (0-7 sus monstruos, 8-15 sus
+        M/T, +16 las del rival)."""
+        mask = ev.get("field_mask", 0xffffffff)
+        out = {}
+        for side in (0, 1):
+            for base, location, first in ((0, OCG_MZONE, 0), (8, OCG_SZONE, 5)):
+                for seq in range(5):
+                    if not mask & (1 << (side * 16 + base + seq)):
+                        out[(side, first + seq)] = {"player": side, "location": location, "sequence": seq}
+        return out
+
     def _s_SELECT_PLACE(self, ev):
+        # Colocación manual (opción «Auto Card Placing» OFF del cliente): se pregunta la zona. Con una sola zona posible
+        # (o varias a la vez) no hay nada que elegir: automática, como siempre
+        if self.cfg.get("place_manual") and self.place_manual and ev.get("type") == "SELECT_PLACE" \
+                and ev.get("count", 1) == 1:
+            cands = self._place_cands(ev)
+            if len(cands) > 1:
+                self.state = {"mode": "place", "cands": cands}
+                return self._request([(p, z, 0, CMD_GENERIC) for p, z in sorted(cands)], (), self.cfg["kind_select"])
         self.state = {"mode": "auto"}                            # el cliente coloca solo (opción SetPosition)
         return []
 
     _s_SELECT_DISFIELD = _s_SELECT_PLACE
+
+    def _place_click(self, p, zone, idx, cmd):
+        """Clic en una zona vacía (0x6350 (j, zona, i, 0xb); el cliente NO normaliza esta: zona + índice = ranura)."""
+        slot = zone + idx if zone < 0xb else zone
+        c = self.state["cands"].get((p, slot)) if cmd == CMD_GENERIC else None
+        if c is None:
+            self.log(f"[traductor] colocación: clic fuera de las zonas libres j={p} zona={zone:#x} índice={idx} cmd={cmd}: se vuelve a pedir")
+            return None, self._resend()
+        return self._answer(_respond(self.waiting["type"], places=[dict(c)]))
 
     # --- B42: ventanas del cliente (NOTES §18) ---------------------------------------------------------------------
     def _dialog(self, kind, text, p2=0, mode=None, **st):
@@ -3199,6 +3684,17 @@ class YO2Duel:
         self.state = dict(st, mode=mode)
         return [(0x6202, setcommand(T_LIST_RESET, 0, (1,))), (0x6202, setcommand(T_LIST_ADD, 0, (text, 2))),
                 (0x6202, setcommand(T_VIEW, 0x32, (kind, 0, p2 & 0xffffffff)))]
+
+    def _dialog_pairs(self, kind, pairs, p2=0, mode=None, **st):
+        """Como _dialog, con la lista A completa [(valor, clase)…] (nombre de carta clase 4 + plantilla clase 0 + número
+        clase 1): §41."""
+        self.state = dict(st, mode=mode)
+        out = [(0x6202, setcommand(T_LIST_RESET, 0, (len(pairs),)))]
+        flat = [v for pr in pairs for v in pr]
+        for k in range(0, len(flat), 8):
+            out.append((0x6202, setcommand(T_LIST_ADD, 0, tuple(flat[k:k + 8]))))
+        out.append((0x6202, setcommand(T_VIEW, 0x32, (kind, 0, p2 & 0xffffffff))))
+        return out
 
     def _auto(self):
         self.state = {"mode": "auto"}
@@ -3271,6 +3767,8 @@ class YO2Duel:
         if plan is None:
             return self._auto()
         text, label, k, lo, hi = plan
+        if k == 1 and self.chain_codes and self.cfg.get("number_texts", DEFAULT_CFG.get("number_texts")):
+            text, label = NUMBER_TEXTS.get(self.chain_codes[-1], (text, label))      # §41: el texto de ESA carta
         return self._dialog(DLGT_NUM, text, label | lo << 16 | hi << 24, "number", opts=opts, scale=k)
 
     def _s_ANNOUNCE_CARD(self, ev):
@@ -3305,12 +3803,19 @@ class YO2Duel:
         opts = [int(x) for x in ev.get("options", [])]
         if len(opts) <= 1 or not self.cfg.get("option_dialog"):
             return self._auto()                          # 1 opción = no hay nada que elegir (auto_response: índice 0)
+        if len(opts) == 2 and self.cfg.get("option_yn", DEFAULT_CFG.get("option_yn")):
+            # §41: Yubel / Yu-Jo Friendship: la elección de dos efectos era un SÍ/NO del cliente (OPTION_YN)
+            (c0, n0), (c1, n1) = _desc_card(opts[0]), _desc_card(opts[1])
+            spec = OPTION_YN.get((c0, n0, n1)) if c0 and c0 == c1 else None
+            pairs = self._yesno_pairs(spec, c0) if spec else None
+            if pairs:
+                return self._dialog_cards([]) + self._dialog_pairs(2, pairs, 0, "option_yn", yes=0, no=1)
         if sorted(opts) == [OPT_YES, OPT_NO]:
             text = DLG_MAGIC_DRAIN if 59344077 in tuple(self.chain_codes) else DLG_CHAIN
             return self._dialog_cards([]) + \
                 self._dialog(2, text, 0, "option_yn", yes=opts.index(OPT_YES), no=opts.index(OPT_NO))
         over = self.cfg.get("option_texts") or {}
-        ids = [over.get(o) or OPTION_DLG.get(o) for o in opts]
+        ids = [over.get(o) or OPTION_DLG.get(o) or OPTION_DLG.get(_option_key(o)) for o in opts]
         if len(opts) > 4 or not all(ids):
             self.log(f"[traductor] SELECT_OPTION {opts} sin texto del cliente para todas: decide bot.ts")
             return self._auto()
@@ -3508,6 +4013,8 @@ class YO2Duel:
             # -1 = el jugador cerró el menú sin elegir (FUN_0077ce00 deja +0x4d0 = -1): NO es una jugada. Antes se
             # tomaba como «la primera opción de la carta» y en vivo cambió la posición de un monstruo sin querer.
             return None, self._resend()
+        if mode == "place":
+            return self._place_click(p, zone, idx, cmd)
         if mode in ("idle", "battle", "chain"):
             same = [o for o in st["options"] if o[0] == p and o[1] == zone and (zone >= 0xc or o[2] == idx)]
             pick = next((o for o in same if o[3] == cmd), None)
@@ -3531,7 +4038,10 @@ class YO2Duel:
                 return self._answer(_respond("SELECT_UNSELECT_CARD", index=c[3]))
             st["chosen"].append(c[3])
             if len(st["chosen"]) >= st["max"]:
-                return self._answer(_respond(self.waiting["type"], indicies=list(st["chosen"])))
+                cmd, out = self._answer(_respond(self.waiting["type"], indicies=list(st["chosen"])))
+                if st.get("kind") == KIND_OPP_HAND and self.hand_open is not None:
+                    out = out + self._opp_hand_done(st)
+                return cmd, out
             return None, self._pick_request()
         return None, []
 
@@ -3562,7 +4072,10 @@ class YO2Duel:
                 return self._answer(_respond(t, index=None))
         elif mode in ("card", "tribute"):
             if len(st["chosen"]) >= st["min"] and st["chosen"]:
-                return self._answer(_respond(t, indicies=list(st["chosen"])))
+                cmd, out = self._answer(_respond(t, indicies=list(st["chosen"])))
+                if st.get("kind") == KIND_OPP_HAND and self.hand_open is not None:
+                    out = out + self._opp_hand_done(st)
+                return cmd, out
             if st.get("can_cancel"):
                 cmd, out = self._answer(_respond(t, indicies=None))
                 if st.get("aim"):

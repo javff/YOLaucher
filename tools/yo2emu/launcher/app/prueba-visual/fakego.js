@@ -99,7 +99,7 @@
   const App = {
     Inicio: () => lat({ Version: '2026.10.11', Reanudando: false, Ajustes: ajustes, Estado: estado() }),
     Listo: () => lat(null), Estado: () => Promise.resolve(estado()), Ajustes: () => Promise.resolve(ajustes),
-    PonerTema: t => { ajustes.tema = t; return lat(null); }, ErrorJS: s => { console.error('[js]', s); (window.__erroresJS = window.__erroresJS || []).push(s); },
+    PonerTema: t => { ajustes.tema = t; return lat(null); }, PonerVentana: v => { ajustes.ventana = v; return lat(null); }, ErrorJS: s => { console.error('[js]', s); (window.__erroresJS = window.__erroresJS || []).push(s); },
     Servidores: () => lat({ Filas: filasLista, Buscando: filasLista.length > 0, Vivos: filasLista.filter(f => f.Estado === 'vivo').length,
       EnCache: filasLista.filter(f => f.Estado === 'cache').length }), Buscar: () => lat(null),
     Minimizar() {}, Maximizar() {}, CerrarVentana() {},

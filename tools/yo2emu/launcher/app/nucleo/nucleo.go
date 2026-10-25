@@ -294,6 +294,16 @@ func (n *Nucleo) PonerTema(tema string) error {
 	return errGen(n.aj.cambiar(func(a *Ajustes) { a.Tema = tema }))
 }
 
+// PonerVentana: Ajustes → Display → «Window size»: "" (Original), "1.5", "2" o "fit" (juego/ventana.go). Vale desde el próximo
+// arranque del juego. Lo que llega de la página no se guarda sin mirar.
+func (n *Nucleo) PonerVentana(v string) error {
+	c, ok := juego.NormalizarVentana(v)
+	if !ok {
+		return errM("msg.err.ventana_invalida", "tamaño de ventana no válido")
+	}
+	return errGen(n.aj.cambiar(func(a *Ajustes) { a.Ventana = c }))
+}
+
 // RestaurarOcultos: vuelve a enseñar todos los servidores que se ocultaron.
 func (n *Nucleo) RestaurarOcultos() error {
 	err := n.aj.cambiar(func(a *Ajustes) { a.Ocultos = nil })
@@ -1017,6 +1027,7 @@ func (n *Nucleo) abrirJuego(local bool) error {
 	if local {
 		off = n.cfg.Offset
 	}
+	n.jl.Ventana = n.aj.leer().Ventana // tamaño de ventana de Ajustes → Display (apagado por defecto)
 	p, err := n.jl.LanzarCon(carpeta, juego.ExisteDiag(carpeta), off)
 	if err != nil {
 		return errJuego(err)

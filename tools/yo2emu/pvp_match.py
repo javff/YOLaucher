@@ -86,6 +86,33 @@ PVP_DUELLOG_RECORD = True   # 06-10: activado con el OK del owner
 REPLAY_ARCHIVE = os.environ.get("YO2_REPLAY_ARCHIVE", "1") not in ("", "0")
 SVRINFO_WAIT = 1.5
 SVR_DISCONNECT, SVR_SURRENDER = 1, 2
+# 24-10 (agente MIS, research/duelfin/NOTES.md «Reglas de rendición del oficial»): el oficial limitaba la rendición de dos
+# maneras. (1) Texto dlg 82 «Puedes rendirte a partir del 10º turno»: el cliente NO lo comprueba (FUN_007390a0 / menú: solo
+# manda 0x6350 (…, 10)); lo decía el servidor, como un cartel de aceptar (CUOkDialog, formato de los duellogs: 0x60 P0 = 1,
+# 0x61 (texto, 2), 0x1b B = 0x32 P = (0, texto, 0)). Duellogs oficiales: las 6 rendiciones de oct-nov 2008 son del turno 11
+# en adelante (10 cambios de turno o más); las de 2009 llegan a ser del turno 1 (35, 26 antes del 10º; la primera, el
+# 2009-03-21): la regla se quitó entre 2008-11-18 y 2009-03-21 (P). SURRENDER_MIN_TURN = turno global de ocgcore a partir del cual se puede (10; 0 = siempre);
+# YO2_SURRENDER_MIN_TURN lo cambia. En la instancia de PRUEBA (YO2_PVP_TEST) el valor por defecto es 0: las pruebas se rinden
+# en su primera decisión. (2) Opción de sala «Rendirse ON/OFF» (textos 5081/5082; byte 21 de 0x4288, DAT_012bb6b0+0xc1, que el
+# cliente solo manda y NUNCA lee en el duelo): con OFF no hay rendición; se quita «Rendirse» del menú del mazo (0x6611) y,
+# si llegara la petición, se descarta. YO2_SURRENDER_ROOM=0 la ignora (como antes).
+DLG_SURRENDER_TURN = 82       # dlg_text: «Puedes rendirte a partir del 10º turno.»  C
+_SMT = (os.environ.get("YO2_SURRENDER_MIN_TURN") or "").strip()
+SURRENDER_MIN_TURN = int(_SMT) if _SMT else (0 if TEST_AUTO else 10)
+SURRENDER_ROOM_OPTION = os.environ.get("YO2_SURRENDER_ROOM", "1") not in ("", "0")
+# 24-10 (agente SUR, research/duelfin/NOTES.md «Rendición en un match»): los jugadores avisaron de que rendirse en un match
+# lo perdía entero aunque fuera la 1.ª partida. El oficial NO hacía eso (C, duellogs oficiales de match de 2008-2009: 29
+# registros, 17 con rendiciones, 26 en total): al rendirse en la partida 1 (12 de 12) o en la 2 de un match 1-1 (5 de 5) el MISMO
+# registro sigue con la partida siguiente; rendirse es perder esa partida y el match lo decide el marcador (2 victorias o
+# 3 partidas), como cualquier otro fin. Por eso SURRENDER_ENDS_MATCH vale False (0x4d con P1 de partida, el cliente
+# cuenta); YO2_SURRENDER_ENDS_MATCH=1 devuelve lo de antes (0x4d P1 = 5: el match acaba ya con derrota del que se rinde).
+# La desconexión a mitad de partida NO cambia (sigue cerrando el match, P1 = 5: sin evidencia oficial, el rival no puede jugar).
+SURRENDER_ENDS_MATCH = os.environ.get("YO2_SURRENDER_ENDS_MATCH", "0") not in ("", "0")
+# Cómo manda el oficial el fin por rendición (51/51 duellogs, duelo suelto y match, C): SIN el 0x23 (LP a 0) y con el 0x05 de
+# motivo 12 (perdedor (2, 0, 12), ganador (1, 12, 0)) y el 0x4d con P1 = 2. Antes: 0x23 + 0x05 motivo 0 + 0x4d P1 = 0 (P).
+# El 12 no tiene animación propia (solo 3..10 abren la vista 0x3b, C); si el resultado enseñara el motivo, sería D.
+# YO2_SURRENDER_FIN_OFICIAL=0 devuelve la secuencia de antes.
+SURRENDER_FIN_OFICIAL = os.environ.get("YO2_SURRENDER_FIN_OFICIAL", "1") not in ("", "0")
 SVR_TIMEUP = 3                # 0x649b código 3: «Se acabó el tiempo de %s» (texto 6514, FUN_0078c140). C
 GUNSLINGER_KINDS = (7, 15)    # b2 de las salas «Sala GUNSLINGER» (research/lobby/NOTES.md, texto 3052). C
 LP_START = 8000
@@ -123,6 +150,19 @@ PVP_MATCH = (os.environ.get("YO2_PVP_MATCH", "1") or "0").strip().lower()
 MATCH_STYLE = 4
 MATCH_WAIT = float(os.environ.get("YO2_PVP_MATCH_WAIT") or 300)   # s entre partidas hasta los dos 0x61fe (D)
 NEXT_MSGS = (0x6600, 0x6601, 0x6603, 0x6100, 0x6101, 0x6102, 0x6103, 0x61fe)   # la partida siguiente ya viene
+# 24-10 (bug "Side decking sometimes not possible", research/duelfin/NOTES.md §5c). CCardSwapScene (el cambio con el side
+# deck) se cierra SOLA cuando FUN_00692e30(1) llega a 0 (FUN_008d4b80, 0x8d4b9f-0x8d4c60: duel_mode_set + escena 0x1e), y
+# FUN_00692e30 devuelve el reloj GLOBAL del duelo, ND+0x534. Ese reloj solo lo escribe 0x6461 con quién = 3 (FUN_00692bf0);
+# si el servidor nunca lo manda vale 0 (en el piedra-papel-tijera sale «00:00», visto en vivo) y la escena del side deck se
+# va en el primer fotograma. El cliente solo crea ese reloj (CJankenTimer, 0x8d3b15) si la sala tiene «Límite de Tiempo»
+# ON (DAT_00cd82d4): por eso «a veces» se podía (salas con el límite OFF) y a veces no (ON, que es lo normal). C.
+# SWAP_TIME = segundos del side deck que se mandan; el valor del oficial es D (el cliente no lo dice; 180 = el límite por
+# turno de un duelo normal, texto 7006). 0 = no mandar nada (como antes: el side deck se corta solo en las salas con límite).
+# SWAP_LEAD = segundos de colchón: el reloj cuenta desde que llega 0x6461 y el cliente tarda en llegar a la escena (fin del
+# duelo + ventana del marcador del match: 6-12 s en los logs 20261010-230407 y 20261012-012417). P.
+SWAP_TIME = float(os.environ.get("YO2_PVP_SWAP_TIME") or 180)
+SWAP_LEAD = float(os.environ.get("YO2_PVP_SWAP_LEAD") or 10)
+GLOBAL_CLOCK = 3              # 0x6461 «quién» = 3: el reloj global ND+0x534 (también el del piedra-papel-tijera)
 M_TEST_LOSE = 0x7ffd          # prueba: «pierdo esta partida». Fuera de YO2_PVP_TEST se ignora (no existe en yo2.exe)
 
 
@@ -158,8 +198,10 @@ class Matches:
             self.pids[sa.pid] = self.pids[sb.pid] = m
         m.room_time = self._room_time(sa, sb)
         m.match_style = self._room_style(sa, sb)
+        m.room_surrender = self._room_surrender(sa, sb)
         self.log(f"[pvp] reserva {m.name}: {sa!r} contra {sb!r}"
                  + (" (sala con «Límite de Tiempo» OFF)" if m.room_time == 0 else "")
+                 + (" (sala con «Rendirse» OFF)" if m.room_surrender == 0 and SURRENDER_ROOM_OPTION else "")
                  + ((" (MATCH al mejor de 3)" if m._bo3() else f" (sala de match; YO2_PVP_MATCH={PVP_MATCH})")
                     if m.match_style == MATCH_STYLE else ""))
         return m
@@ -192,6 +234,22 @@ class Matches:
                 x = r.get("x") or ()
                 if r.get("p1") == getattr(s, "pid", None) and not r.get("npc") and len(x) >= 2:
                     return 1 if x[1] else 0
+        return None
+
+    def _room_surrender(self, sa, sb):
+        """Opción «Rendirse ON/OFF» de la sala donde se pacta el duelo: byte 21 de 0x4288 (DAT_012bb6b0+0xc1; textos
+        5081/5082) = r["x"][0] del lobby, la del dueño de la sala como _room_time. 1/0, o None si no se encuentra (se
+        puede rendir). Por defecto el cliente la manda a 1 (log vivo de 0x4288: 1, 1, tiempo)."""
+        LP = self.env.get("LP")
+        try:
+            rooms = list(LP.MEM["rooms"].values())
+        except Exception:                                # noqa: BLE001
+            return None
+        for s in (sb, sa):
+            for r in rooms:
+                x = r.get("x") or ()
+                if r.get("p1") == getattr(s, "pid", None) and not r.get("npc") and len(x) >= 1:
+                    return 1 if x[0] else 0
         return None
 
     def by_pid(self, pid):
@@ -262,6 +320,8 @@ class PvpMatch:
         self.sent6103 = False
         self.ready = [False, False]
         self.ask = [False, False]       # diálogo «¿Te rindes?» abierto
+        self.ok_ask = [False, False]    # cartel de aceptar (dlg 82) mandado: un 0x6423 que llegue se descarta
+        self.room_surrender = None      # opción de sala «Rendirse» (1 ON, 0 OFF, None no se sabe)
         self.closed = [False, False]
         self.ps = None                  # ocg_duel.PvpSession
         self.done = False
@@ -317,6 +377,7 @@ class PvpMatch:
         self.c[i] = c
         self.closed[i] = False
         self.tx[i] = OCG.Sender(c)
+        self.tx[i] = _SurrTx(self.tx[i], self)           # sala con «Rendirse» OFF: sin la entrada en el menú del mazo
         if PVP_DUELLOG_RECORD or PVP_WATCH or REPLAY_ARCHIVE:   # apunta los 0x6202 de este lado (repetición,
             # espectador, archivo del servidor)
             self.tx[i] = _RecTx(self.tx[i], self._recorder(), i, self._watch_pump if PVP_WATCH else None)
@@ -383,7 +444,10 @@ class PvpMatch:
         if getattr(self, "need_start", False) and mid in NEXT_MSGS:   # match: la partida siguiente (PVP_MATCH)
             if getattr(self, "between", False):
                 self._next_game()
-            self.__dict__.setdefault("seen_next", [False, False])[i] = True
+            seen = self.__dict__.setdefault("seen_next", [False, False])
+            if not seen[i]:
+                self._swap_reset(i)                      # i ya está en el piedra-papel-tijera: sale de la escena del side deck
+            seen[i] = True
         if mid == 0x0005:                            # latido -> 0x0004 (como duel_reply)
             return self.send(i, 0x0004, struct.pack(">I", 0))
         if mid == 0x0003:                            # el cliente cierra la sesión de duelo tras los resultados
@@ -470,6 +534,11 @@ class PvpMatch:
                 self._watch_pump()
             return self._maybe_6103()
         if mid == 0x61fe:
+            # u8 = opción «Auto Card Placing» del cliente (0 = automática, 1 = manual: elige él la zona); se manda al
+            # empezar y cada vez que cambia las opciones en pleno duelo (translator.py, place_manual)
+            self.__dict__.setdefault("place_manual", [False, False])[i] = bool(data[:1] and data[0])
+            if self.ps is not None and not getattr(self, "need_start", False) and self.ps.views[i] is not None:
+                self.ps.views[i].place_manual = self.place_manual[i]
             if self.ready[i]:
                 return self.log(f"[pvp] {self.name}: 0x61fe repetido de {i} ({data.hex()}): ignorado")
             self.ready[i] = True
@@ -498,14 +567,24 @@ class PvpMatch:
                 self.log(f"[pvp] {self.name}: 0x{mid:04x} de {i} sin respuesta")
             return
         DFM = self.env.get("DFM")
+        if mid != 0x6423:
+            self.ok_ask[i] = False                       # el jugador ya ha tocado otra cosa: el cartel está cerrado
+        if mid == 0x6423 and self.ok_ask[i] and not self.ask[i]:
+            self.ok_ask[i] = False
+            return self.log(f"[pvp] {self.name}: 0x6423 del jugador {i} tras el cartel de rendición ({data.hex()}): descartado")
         if mid == 0x6350 and DFM is not None and DFM.is_surrender(data):
+            why = self._surrender_denied()
+            if why:
+                return self._surrender_refuse(i, why)
             self.ask[i] = True                           # «Rendirse» (bit 10 del mazo propio): diálogo SÍ/NO
+            self.log(f"[pvp] {self.name}: el jugador {i} pide rendirse (decide {getattr(self.ps, 'decider', None)}): diálogo SÍ/NO")
             return self.put(i, DFM.surrender_confirm_msgs())
         if mid == 0x6423 and self.ask[i]:
             self.ask[i] = False
             yes = len(data) >= 4 and struct.unpack(">I", data[:4])[0] == DFM.YES
             if yes:
                 return self._surrender(i)
+            self.log(f"[pvp] {self.name}: el jugador {i} contesta NO al diálogo de rendición ({data.hex()}): sigue el duelo")
             return self.ps.resend(i)
         if mid in (self.env.get("OCG_CLIENT_MSGS") or ()):
             return self.ps.on_client(i, mid, data)
@@ -578,10 +657,38 @@ class PvpMatch:
         self.__dict__.setdefault("firsts", []).append(first)   # quién empieza cada partida (+0xbbe6.. del registro)
         self.ps = OCG.PvpSession(self.c, self.deck, self.log, self._on_end, out=self.tx,   # una cola por cliente
                                  clock=clock)
+        self.ps.place_manual = tuple(getattr(self, "place_manual", None) or (False, False))   # opción de cada cliente
+        self._stats_attach()
         self.log(f"[pvp] {self.name}: arranca" + (f" la partida {len(self.firsts)} del match" if self._bo3() else "")
                  + f", empieza {first}; {why}")
         self.ps.start(first)
         _admin_ev("pvp_start", self.sess[0], self.sess[1])          # panel: «A y B empiezan un duelo»
+
+    def _stats_attach(self):
+        """B51: contadores del perfil de ESTA partida (tributos, Especiales, activaciones…) sobre los eventos de duelcore:
+        persistencia.DuelTally en la sesión (ocg_duel.PvpSession._pump los alimenta) y las cartas cambiadas con el Side
+        Deck respecto a la partida anterior del match. YO2_STATS_PVP=0 lo apaga. Un fallo solo va al log."""
+        try:
+            PS = self.env["DFM"].PS
+            OCG = self.env.get("OCG")
+            if not getattr(PS, "STATS_PVP_ON", False) or not hasattr(PS, "DuelTally") or OCG is None:
+                return
+            cm = OCG.cardmap()
+
+            def typeof(code):
+                return cm.cdb_type.get(code) or cm.cdb_type.get(cm.cdb_alias.get(code, 0), 0)
+            t = PS.DuelTally(typeof=typeof)
+            used = [{"main": list(d.get("main") or []), "extra": list(d.get("extra") or [])} for d in self.deck]
+            prev, self.decks_used = getattr(self, "decks_used", None), used
+            if prev:                                     # match: cartas que han entrado respecto a la partida anterior
+                import collections
+                for k in (0, 1):
+                    a = collections.Counter(prev[k]["main"] + prev[k]["extra"])
+                    b = collections.Counter(used[k]["main"] + used[k]["extra"])
+                    t.side_swaps[k] = sum((b - a).values())
+            self.ps.stats = t
+        except Exception as e:                           # noqa: BLE001
+            self.log(f"[EXC] {self.name}: estadísticas del perfil: {e!r}")
 
     def _on_end(self, winner, reason, turns):
         """Fin normal (duelcore «end»): winner absoluto 0/1 o None (empate)."""
@@ -595,6 +702,29 @@ class PvpMatch:
         _admin_ev("pvp_end", self.sess[0], self.sess[1], winner, why, turns)   # panel: Actividad
         self._game_end(winner, why, turns)
 
+    def _surrender_denied(self):
+        """Motivo por el que NO se puede rendir ahora (reglas del oficial, ver SURRENDER_MIN_TURN), o None: "room" = la
+        sala tiene «Rendirse» OFF, "turn" = antes del turno SURRENDER_MIN_TURN (turno global de ocgcore, el de la última
+        decisión)."""
+        if SURRENDER_ROOM_OPTION and self.room_surrender == 0:
+            return "room"
+        turn = getattr(self.ps, "turn", 0) or 0
+        if SURRENDER_MIN_TURN and turn < SURRENDER_MIN_TURN:
+            return "turn"
+        return None
+
+    def _surrender_refuse(self, i, why):
+        """Petición de rendirse que no se admite. "turn": cartel de aceptar con el dlg 82 (lo que enseñaba el oficial,
+        formato C de los duellogs) y se vuelve a pedir la jugada, que el cliente gasta al pulsar «Rendirse» (como con el
+        NO del diálogo SÍ/NO). "room": el menú ya no lo trae; si llega igual, solo se vuelve a pedir la jugada."""
+        DFM = self.env.get("DFM")
+        self.log(f"[pvp] {self.name}: el jugador {i} pide rendirse y NO se admite ({why}; turno {getattr(self.ps, 'turn', '?')}, "
+                 f"mínimo {SURRENDER_MIN_TURN}, sala {self.room_surrender})")
+        if why == "turn" and DFM is not None and hasattr(DFM, "info_dialog_msgs"):
+            self.ok_ask[i] = True
+            self.put(i, DFM.info_dialog_msgs(DLG_SURRENDER_TURN))
+        return self.ps.resend(i)
+
     def _surrender(self, i):
         DFM = self.env["DFM"]
         o = 1 - i
@@ -602,7 +732,8 @@ class PvpMatch:
         self.ps.end()
         self.surr = i                                    # quién se rinde: surrender_me/surrender_opp del perfil (apply_duel_stats)
         _admin_ev("pvp_end", self.sess[0], self.sess[1], o, "surrender")      # panel: Actividad
-        self._game_end(o, DFM.WHY_SURRENDER, 0, svr={o: SVR_SURRENDER}, close=True)
+        # en un match, rendirse es perder ESTA partida (el oficial, C: ver SURRENDER_ENDS_MATCH); fuera de un match close no cuenta
+        self._game_end(o, DFM.WHY_SURRENDER, 0, svr={o: SVR_SURRENDER}, close=SURRENDER_ENDS_MATCH)
 
     # ------------------------------------------------------------------ fin de partida y match (PVP_MATCH)
     def _bo3(self):
@@ -631,7 +762,7 @@ class PvpMatch:
 
     def _game_end(self, winner, why, turns=0, svr=None, close=False):
         """Fin de una partida: winner absoluto 0/1 o None (empate). svr = {k: código 0x649b} antes de su fin. close =
-        el match acaba ya aunque no esté decidido (rendición, desconexión): 0x4d P1 = 5 (C: DAT_00cd82d0 = P0).
+        el match acaba ya aunque no esté decidido (desconexión; la rendición solo con SURRENDER_ENDS_MATCH): 0x4d P1 = 5 (C: DAT_00cd82d0 = P0).
         Fuera de un match: como siempre (_finish a los dos, registro y fuera). En un match sin decidir: 0x4d P1 = 0
         (el cliente cuenta), sin carta ni 0x4800 ni registro, y a esperar la partida siguiente (_between_begin)."""
         DFM = self.env["DFM"]
@@ -657,7 +788,7 @@ class PvpMatch:
                  + ("empate" if winner is None else f"gana {winner}") + f" ({why}); marcador {self._score(0)[0][:3]}"
                  + ((" -> match acabado: " + ("empate" if mwin is None else f"gana {mwin}")
                      + (" (se cierra ya)" if close else "")) if over else " -> sigue"))
-        fin = DFM.FINISH_CLOSE if close else DFM.FINISH_NORMAL
+        fin = DFM.FINISH_CLOSE if close else None       # None = FINISH_NORMAL (o FINISH_SURRENDER si es una rendición, ver _finish)
         for k in (0, 1):
             mres = None if not over else "draw" if mwin is None else "win" if mwin == k else "lose"   # puntuación (rx/XP)
             self._finish(k, wv(k), why, turns, svr=svr.get(k), fin=fin, score=self._score(k), last=over, mres=mres)
@@ -679,6 +810,36 @@ class PvpMatch:
         t.start()
         self.log(f"[pvp] {self.name}: entre partidas; elige quién empieza "
                  + ("(piedra-papel-tijera)" if self.chooser is None else f"el jugador {self.chooser}"))
+        self._swap_clock()
+
+    def _swap_clock(self):
+        """Reloj del side deck (SWAP_TIME): 0x6461 quién = 3 a los dos tras el fin de la partida. Sin él ND+0x534 vale 0 y
+        la escena del side deck se cierra sola al instante en las salas con «Límite de Tiempo» ON (ver SWAP_TIME). Con la
+        sala en OFF el cliente no crea ese reloj: no se manda nada. La cuenta atrás la hace el cliente (FUN_00692d50) y
+        al llegar a 0 pasa solo al piedra-papel-tijera con el mazo que tenga."""
+        self.swap_clock = [False, False]
+        if SWAP_TIME <= 0 or getattr(self, "room_time", None) == 0:
+            return
+        secs = int(round(SWAP_TIME + SWAP_LEAD))
+        for k in (0, 1):
+            if self.tx[k] is not None and not self.closed[k]:
+                self.send(k, 0x6461, self._clock3(secs, 0))
+                self.swap_clock[k] = True
+        self.log(f"[pvp] {self.name}: reloj del side deck: {secs} s a los dos (global, corriendo)")
+
+    def _swap_reset(self, i):
+        """i ya ha vuelto al piedra-papel-tijera (primer mensaje de la partida siguiente): su reloj global a 0 y parado, como
+        en la partida 1 (si no, el piedra-papel-tijera seguiría contando lo que sobró del side deck). Solo a i: el otro
+        puede seguir cambiando cartas y con un 0 se le cerraría la escena."""
+        sc = getattr(self, "swap_clock", None)
+        if not sc or not sc[i]:
+            return
+        sc[i] = False
+        self.send(i, 0x6461, self._clock3(0, 1))
+
+    def _clock3(self, secs, paused):
+        LS = self.env.get("LS")
+        return LS.timeup_warning(GLOBAL_CLOCK, secs, paused) if LS is not None else struct.pack(">BiBi", GLOBAL_CLOCK, secs, paused, -1)
 
     def _next_game(self):
         """Primer mensaje de la partida siguiente (0x6600.. o 0x6102): estado del arranque a cero. Los dos reenvían
@@ -693,6 +854,7 @@ class PvpMatch:
         self.sent6103 = False
         self.ready = [False, False]
         self.ask = [False, False]
+        self.surr = None                                 # quién se rindió en la partida anterior (apply_duel_stats solo de ESA partida)
         self.seen_next = [False, False]
         self.log_fase = self.log_q = None
         self.log(f"[pvp] {self.name}: partida {self.game_no} del match: llegan los mazos")
@@ -1056,7 +1218,13 @@ class PvpMatch:
         if svr and PVP_SVRINFO:
             self.put(k, [(0x649b, self._svrinfo(svr)), (None, lambda: time.sleep(SVRINFO_WAIT))])
         if ends:
-            self.put(k, DFM.end_duel_msgs(wv, why, finish=DFM.FINISH_NORMAL if fin is None else fin, score=score))
+            kw = {}
+            if (why == getattr(DFM, "WHY_SURRENDER", "surrender") and SURRENDER_FIN_OFICIAL
+                    and hasattr(DFM, "FINISH_SURRENDER")):     # como el oficial (C): sin 0x23, motivo 12, 0x4d P1 = 2
+                kw["official_surrender"] = True
+                if fin is None:
+                    fin = DFM.FINISH_SURRENDER
+            self.put(k, DFM.end_duel_msgs(wv, why, finish=DFM.FINISH_NORMAL if fin is None else fin, score=score, **kw))
         elif score is not None:
             self.put(k, [(DFM.M_DUELSCORE, DFM.duelscore(score[0], score[1]))])
         if last and PVP_DUELLOG_FINISH and not PVP_DUELLOG_RECORD:   # cabecera (n = 0) + cierre: ver duellog_msgs
@@ -1078,7 +1246,9 @@ class PvpMatch:
             except (TypeError, ValueError, IndexError):
                 lp_left = 0
             if hasattr(PS, "apply_duel_stats"):
-                PS.apply_duel_stats(p, None, lp_left, None if surr is None else "me" if surr == k else "opp")
+                tally = getattr(getattr(self, "ps", None), "stats", None)
+                stats = tally.for_player(k) if tally is not None else None      # B51: tributos, Especiales, activaciones…
+                PS.apply_duel_stats(p, stats, lp_left, None if surr is None else "me" if surr == k else "opp")
             if hasattr(PS, "pvp_xp"):
                 name = "win" if res == DFM.RESULT_WIN else "lose" if res == DFM.RESULT_LOSE else "draw"
                 lv = self._xp_levels()
@@ -1112,6 +1282,36 @@ class PvpMatch:
         except Exception as ex:                          # noqa: BLE001  (la carta nunca tumba el fin del duelo)
             self.log(f"[EXC] {self.name}: carta tras el PvP: {ex!r}")
             return (), ""
+
+
+def _quita_rendirse(data):
+    """0x6611 sin «Rendirse»: bit 10 de la máscara del mazo propio (jugador 0, zona 0xd). Formato (research/lockstep
+    comid_field): por jugador, zonas 0..15 salvo la 11 (mano) -> u16 máscara + u8; la zona 0xd es la 13.ª entrada (12 con
+    la 11 saltada), a los 36 B. Lo que no mida 110 B se deja tal cual."""
+    if len(data) != 110:
+        return data
+    o = 12 * 3
+    m = int.from_bytes(data[o:o + 2], "big")
+    if not m & (1 << 10):
+        return data
+    return data[:o] + (m & ~(1 << 10)).to_bytes(2, "big") + data[o + 2:]
+
+
+class _SurrTx:
+    """Cola de envío de un jugador de PvP que, en una sala con «Rendirse» OFF, quita «Rendirse» de las máscaras 0x6611
+    (el servidor decide qué entradas trae el menú del mazo). Lo demás pasa igual; el resto de atributos, de la cola."""
+
+    def __init__(self, tx, match):
+        self.tx, self.m = tx, match
+
+    def put(self, msgs):
+        if SURRENDER_ROOM_OPTION and self.m.room_surrender == 0:
+            msgs = [(m[0], _quita_rendirse(m[1])) if isinstance(m, tuple) and m[0] == 0x6611 and isinstance(m[1], (bytes, bytearray))
+                    else m for m in msgs]
+        self.tx.put(msgs)
+
+    def __getattr__(self, k):
+        return getattr(self.tx, k)
 
 
 class _RecTx:

@@ -14,6 +14,9 @@
  */
 import { createInterface } from "node:readline";
 import { randomBytes } from "node:crypto";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { Duel, loadEngine } from "../../../apps/server/src/duel/engine.ts";
 import { Bot } from "../../../apps/server/src/duel/bot.ts";
 import { applyToTrack, type DuelTrack } from "../../../apps/server/src/duel/view.ts";
@@ -44,6 +47,55 @@ const { core, db, scripts } = await loadEngine();
 // ocgcore-wasm 0.1.2 lee mal MSG_SELECT_SUM (rituales): parche en parche_ocgcore.mts (YO2_PARCHE_SUM=0 lo apaga)
 const parcheSum = instalarParcheSelectSum(core);
 const loadMs = Date.now() - loadStart;
+
+// ---------------------------------------------------------------------------
+// Scripts de 2008: cNNNNN.lua que sustituyen a los de CardScripts (ProjectIgnis, textos de HOY) para las cartas cuyo
+// texto en el cliente 2008 era otro (erratas posteriores). Carpeta `scripts_2008/` junto a este fichero (en el paquete,
+// junto a duelcore.mjs) o la de YO2_SCRIPTS_2008_DIR. YO2_SCRIPTS_2008=0 los apaga (vuelve el comportamiento moderno).
+// Se leen UNA vez al arrancar. El vendor no se toca. Ver scripts_2008/LEEME.md.
+// ---------------------------------------------------------------------------
+const scripts2008Activos = !["0", "false", "off", "no"].includes((process.env.YO2_SCRIPTS_2008 ?? "1").trim().toLowerCase());
+const scripts2008 = new Map<string, string>();
+if (scripts2008Activos) {
+  const dir = process.env.YO2_SCRIPTS_2008_DIR || join(dirname(fileURLToPath(import.meta.url)), "scripts_2008");
+  if (existsSync(dir)) {
+    for (const f of readdirSync(dir)) if (/^c\d+\.lua$/.test(f)) scripts2008.set(f, readFileSync(join(dir, f), "utf8"));
+  }
+}
+/** scriptReader del core: primero el de 2008 (si hay), luego CardScripts */
+const leerScript = (name: string): string | null => {
+  const file = name.split(/[\\/]/).pop()!;
+  return scripts2008.get(file) ?? scripts.read(name);
+};
+
+// ---------------------------------------------------------------------------
+// Compat CHAININFO. El ocgcore-wasm 0.1.2 no conoce los CHAININFO_TRIGGERING_LINK/LSCALE/RSCALE (31, 32, 33) que usa el
+// chain.lua de CardScripts (2026): Duel.GetChainInfo lanza "Passed invalid CHAININFO flag". chain.lua envuelve
+// Duel.RegisterEffect y, si hay un efecto resolviéndose (Duel.GetReasonEffect), pide TODAS las propiedades de su carta
+// (incluidas esas) => la RegisterEffect de CUALQUIER carta que registre un efecto desde su operación lanza un error
+// de Lua y la operación se corta ahí (Strike Ninja: se destierra pero no se registra su vuelta en la End Phase y no
+// vuelve nunca; avisos «chain.lua:85» de los duelos NPC). Las banderas desconocidas devuelven nil (chain.lua ya prevé
+// nil en Setcode). YO2_COMPAT_CHAININFO=0 lo apaga (diagnóstico). Se carga tras constant.lua/utility.lua.
+// ---------------------------------------------------------------------------
+const compatChainInfo = !["0", "false", "off", "no"].includes((process.env.YO2_COMPAT_CHAININFO ?? "1").trim().toLowerCase());
+const COMPAT_CHAININFO_LUA = `
+do
+  local viejo=Duel.GetChainInfo
+  local sin_soporte={[31]=true,[32]=true,[33]=true}
+  Duel.GetChainInfo=function(ch,...)
+    local n=select('#',...)
+    local hay=false
+    for i=1,n do if sin_soporte[(select(i,...))] then hay=true end end
+    if not hay then return viejo(ch,...) end
+    local r={}
+    for i=1,n do
+      local f=select(i,...)
+      if not sin_soporte[f] then r[i]=viejo(ch,f) end
+    end
+    return table.unpack(r,1,n)
+  end
+end
+`;
 
 // ---------------------------------------------------------------------------
 // Utilidades
@@ -189,6 +241,25 @@ function enumValue(e: object, v: unknown, what: string): number {
   throw new Error(`${what} no válido: ${JSON.stringify(v)}`);
 }
 
+/**
+ * SORT_CARD / SORT_CHAIN con un orden explícito. El escritor de respuestas de ocgcore-wasm 0.1.2 pone un byte con el
+ * NÚMERO de cartas delante (`i8(order.length)`, luego cada `i8(order[i])`), pero el core lee `order` crudo (n bytes, uno por
+ * carta, una permutación de 0..n-1; 0xff = orden por defecto): con el byte de más, CUALQUIER orden daba RETRY (medido con
+ * Spellbook Organization: [0,1,2], [1,2,0]…; solo valía `order: null`). La librería solo recorre el array con `.length` y
+ * `for…of`: un objeto cuyo `.length` es el primer valor y cuyo iterador da los demás escribe justo los n bytes crudos.
+ */
+function respuestaOrden(orden: number[]): number[] {
+  const [primero, ...resto] = orden;
+  return {
+    get length() {
+      return primero;
+    },
+    *[Symbol.iterator]() {
+      yield* resto;
+    },
+  } as unknown as number[];
+}
+
 /** Respuesta JSON del humano → OcgResponse (nombres o números; jugadores de vuelta a índices del core) */
 function parseResponse(r: Json, swap: boolean): OcgResponse {
   if (!r || typeof r !== "object") throw new Error("response debe ser un objeto");
@@ -207,6 +278,7 @@ function parseResponse(r: Json, swap: boolean): OcgResponse {
       sequence: Number(p.sequence),
     }));
   }
+  if (out.type === OcgResponseType.SORT_CARD && Array.isArray(r.order) && r.order.length) out.order = respuestaOrden((r.order as unknown[]).map(Number));
   if (Array.isArray(r.races)) out.races = (r.races as unknown[]).map((x) => BigInt(x as number));
   if (Array.isArray(r.attributes)) out.attributes = (r.attributes as unknown[]).map(Number);
   return out as unknown as OcgResponse;
@@ -270,7 +342,7 @@ function createDuel(
     team1: team,
     team2: team,
     cardReader: (code) => db.get(code),
-    scriptReader: (name) => scripts.read(name),
+    scriptReader: leerScript,
     errorHandler: (type, text) => {
       // Igual que engine.ts: los monstruos normales no tienen script y no es un error
       if (type === OcgLogType.ERROR && /c\d+\.lua/.test(text) && /not found|cannot open/i.test(text)) return;
@@ -286,6 +358,7 @@ function createDuel(
     const src = scripts.read(s);
     if (!src || !core.loadScript(handle, s, src)) throw new Error(`no se pudo cargar ${s}`);
   }
+  if (compatChainInfo && !core.loadScript(handle, "yo2_compat.lua", COMPAT_CHAININFO_LUA)) throw new Error("no se pudo cargar yo2_compat.lua");
   // El jugador 0 del core es siempre el que empieza
   const coreDecks = swap ? [decks[1], decks[0]] : [decks[0], decks[1]];
   coreDecks.forEach((deck, t) => {
@@ -621,7 +694,7 @@ function handle(line: string) {
 }
 
 const startOut = new Out();
-startOut.emit({ ev: "ready", cards: db.size, load_ms: loadMs, pid: process.pid, parche_sum: parcheSum });
+startOut.emit({ ev: "ready", cards: db.size, load_ms: loadMs, pid: process.pid, parche_sum: parcheSum, compat_chaininfo: compatChainInfo, scripts_2008: [...scripts2008.keys()].map((f) => Number(f.slice(1, -4))).sort((a, b) => a - b) });
 startOut.flush();
 
 const rl = createInterface({ input: process.stdin, crlfDelay: Infinity });

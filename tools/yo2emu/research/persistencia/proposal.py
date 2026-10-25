@@ -1426,6 +1426,120 @@ STAT_KEYS = ("tribute1", "tribute2", "tribute3", "fusions", "ss_grave", "ss_tota
              "spell_me", "spell_opp", "effect_me", "effect_opp", "comeback_wins", "comeback_losses", "side_swaps")
 
 
+# 24-10 (agente MIS, rx/MIS): los contadores de STAT_KEYS que se recogen DURANTE el duelo (research/persistencia/NOTES.md
+# «Contadores del perfil»). Etiquetas del cliente (textos 9031-9044): 9031-9033 «veces que se ha ofrecido N monstruos como
+# Tributo», 9034 «veces que ha salido un Monstruo de Fusión», 9035 Especiales desde el Cementerio, 9036 Especiales,
+# 9037-9042 «veces que he / el oponente ha activado» Trampa / Mágica / efecto de Monstruo de Efecto, 9043-9044
+# «victorias / derrotas anunciadas» (come-from-behind), 9030 cartas cambiadas con el Side Deck. Qué cuenta el oficial
+# exactamente: D (el cliente solo pinta el número). Apagar todo: YO2_STATS_PVP=0.
+STATS_PVP_ON = os.environ.get("YO2_STATS_PVP", "1") not in ("", "0")
+# Remontada (9043/9044): el oficial no dice cuánto. Apagado (0) salvo que se ponga un umbral en LP: YO2_STAT_COMEBACK=4000
+# cuenta victoria remontada si el ganador llegó a ir perdiendo por >= esos LP (y derrota remontada al perdedor que
+# llegó a ir ganando por >= esos LP), medido en cada decisión. D.
+STAT_COMEBACK_LP = int(os.environ.get("YO2_STAT_COMEBACK") or 0)
+_T_MONSTER, _T_SPELL, _T_TRAP, _T_FUSION = 0x1, 0x2, 0x4, 0x40       # tipos de cards.cdb
+_LOC_MZONE, _LOC_GRAVE = 0x4, 0x10                                    # ubicaciones de ocgcore
+_R_TRIBUTE = 0x1a        # motivo del MOVE de un tributo de Invocación Normal: REASON_RELEASE | MATERIAL | SUMMON (medido)
+_R_SPSUMMON = 0x800
+
+
+class DuelTally:
+    """Cuenta, sobre los eventos de duelcore de UN duelo (jugadores y controladores ABSOLUTOS, 0/1), lo que enseñan las
+    estadísticas del perfil. typeof(código) -> tipo de cards.cdb (o 0). Se alimenta con feed_many(eventos) de cada tanda;
+    for_player(k) da el dict para apply_duel_stats(stats=) desde el punto de vista del jugador k.
+      tributo N:      N MOVE de monstruos del campo al cementerio con motivo 0x1a justo antes de un SUMMONING/SET de monstruo
+                      (se cuentan 1, 2 y 3 o más; el que invoca es el controlador del SUMMONING/SET)
+      Especiales:     cada SPSUMMONING; del Cementerio si el MOVE que lo trae viene de ahí; de Fusión si es un monstruo
+                      del tipo Fusión (aparezca como aparezca)
+      activaciones:   cada CHAINING según el tipo de la carta que activa (Trampa / Mágica / Monstruo), para el jugador que
+                      activa (triggering_controller): mías en trap_me/spell_me/effect_me y las del rival en *_opp
+    """
+
+    def __init__(self, typeof=None, comeback_lp=None):
+        self.typeof = typeof or (lambda code: 0)
+        self.comeback_lp = STAT_COMEBACK_LP if comeback_lp is None else int(comeback_lp)
+        self.n = {k: [0, 0] for k in ("tribute1", "tribute2", "tribute3", "fusions", "ss_grave", "ss_total",
+                                      "trap", "spell", "effect", "comeback_wins", "comeback_losses")}
+        self.side_swaps = [0, 0]
+        self.trib = 0                      # tributos pendientes del próximo SUMMONING/SET
+        self.mv = None                     # último MOVE hacia una zona de monstruos (origen del SPSUMMONING siguiente)
+        self.lp = [8000, 8000]
+        self.behind = [0, 0]               # lo máximo que ha ido perdiendo cada jugador (LP del rival - los suyos)
+
+    def feed_many(self, evs):
+        for ev in evs:
+            self.feed(ev)
+
+    def _lp(self, lp):
+        try:
+            self.lp = [int(lp[0]), int(lp[1])]
+        except (TypeError, ValueError, IndexError):
+            return
+        for p in (0, 1):
+            self.behind[p] = max(self.behind[p], self.lp[1 - p] - self.lp[p])
+
+    def feed(self, ev):
+        kind = ev.get("ev")
+        if isinstance(ev.get("lp"), (list, tuple)) and len(ev["lp"]) == 2:
+            self._lp(ev["lp"])
+        if kind == "end":
+            w = ev.get("winner")
+            if self.comeback_lp > 0 and w in (0, 1) and self.behind[w] >= self.comeback_lp:
+                self.n["comeback_wins"][w] += 1
+                self.n["comeback_losses"][1 - w] += 1
+            return
+        if kind != "msg":
+            return
+        t = ev.get("type")
+        if t == "MOVE":
+            fr, to = ev.get("from") or {}, ev.get("to") or {}
+            reason = int(ev.get("reason") or 0)
+            if fr.get("location") == _LOC_MZONE and reason & _R_TRIBUTE == _R_TRIBUTE:
+                self.trib += 1                            # (el tributo va al cementerio o, p. ej. Spirit, a otro sitio)
+            if to.get("location") == _LOC_MZONE and reason & _R_SPSUMMON:
+                self.mv = ev
+        elif t in ("SUMMONING", "SET"):
+            if t == "SUMMONING" or ev.get("location") == _LOC_MZONE:
+                p = ev.get("controller")
+                if self.trib and p in (0, 1):
+                    self.n["tribute%d" % min(self.trib, 3)][p] += 1
+                self.trib = 0
+        elif t == "SPSUMMONING":
+            p = ev.get("controller")
+            if p in (0, 1):
+                self.n["ss_total"][p] += 1
+                m, self.mv = self.mv, None
+                if m is not None and (m.get("to") or {}).get("sequence") == ev.get("sequence")                         and (m.get("to") or {}).get("controller") == p:
+                    if (m.get("from") or {}).get("location") == _LOC_GRAVE:
+                        self.n["ss_grave"][p] += 1
+                    code = ev.get("code") or m.get("card")
+                else:
+                    code = ev.get("code")
+                if code and int(self.typeof(code) or 0) & _T_FUSION:
+                    self.n["fusions"][p] += 1
+            self.trib = 0
+        elif t == "CHAINING":
+            p = ev.get("triggering_controller", ev.get("controller"))
+            ty = int(self.typeof(ev.get("code")) or 0) if ev.get("code") else 0
+            key = "spell" if ty & _T_SPELL else "trap" if ty & _T_TRAP else "effect" if ty & _T_MONSTER else None
+            if key and p in (0, 1):
+                self.n[key][p] += 1
+            self.trib = 0
+        elif t in ("NEW_PHASE", "NEW_TURN"):
+            self.trib = 0
+
+    def for_player(self, k):
+        """Contadores del jugador k (0/1 absoluto) para apply_duel_stats: solo los distintos de 0."""
+        o, n = 1 - k, self.n
+        out = {"tribute1": n["tribute1"][k], "tribute2": n["tribute2"][k], "tribute3": n["tribute3"][k],
+               "fusions": n["fusions"][k], "ss_grave": n["ss_grave"][k], "ss_total": n["ss_total"][k],
+               "trap_me": n["trap"][k], "trap_opp": n["trap"][o], "spell_me": n["spell"][k],
+               "spell_opp": n["spell"][o], "effect_me": n["effect"][k], "effect_opp": n["effect"][o],
+               "comeback_wins": n["comeback_wins"][k], "comeback_losses": n["comeback_losses"][k],
+               "side_swaps": self.side_swaps[k]}
+        return {key: v for key, v in out.items() if v}
+
+
 def apply_duel_stats(p, stats=None, lp_left=0, surrender=None):
     """B51 (lado perfil): suma los contadores del duelo al registro. surrender: "me" | "opp" | None."""
     r = p.setdefault("rec", {})

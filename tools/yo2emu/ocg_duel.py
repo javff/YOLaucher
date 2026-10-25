@@ -289,6 +289,7 @@ class OcgSession:
     dc = None
     core_errors = 0
     turn = 0
+    place_manual = False               # opción «Auto Card Placing» OFF del cliente (u8 de 0x61fe != 0), la pone run.py
 
     def __init__(self, c, log, finish, npc_id):
         self.c, self.log, self.finish, self.npc_id = c, log, finish, npc_id
@@ -345,6 +346,7 @@ class OcgSession:
         decks = [{"main": to_codes(self.player["main"]), "extra": to_codes(self.player["extra"])},
                  {"main": to_codes(self.npc["main"]), "extra": to_codes(self.npc["extra"])}]
         self.d = TR.YO2Duel(decks, first=first, cardmap=cardmap(), log=self.log)
+        self.d.place_manual = bool(self.place_manual)
         # con query, el traductor corrige posición y ATK/DEF (0x36/0x37) ANTES de cada petición de jugada, antes
         # de cada ataque y al cerrar cada cadena; sin ella solo se hacía DESPUÉS del 0x1a (ver sync_stats abajo)
         self.d.query = lambda: self._core().query(self.id)
@@ -610,6 +612,8 @@ class PvpSession:
     # sin reloj (límite apagado, sala con «Límite OFF») y los que ya estaban en marcha antes de una recarga en caliente
     # (hot_tiempo.py cambia estos métodos en la clase viva: con clk None hacen exactamente lo de antes).
     clk = None
+    place_manual = (False, False)   # opción «Auto Card Placing» OFF de cada cliente (u8 de 0x61fe != 0), la pone PvpMatch
+    stats = None                    # B51: persistencia.DuelTally (la pone PvpMatch): cuenta tributos, especiales, activaciones…
 
     def __init__(self, conns, decks, log, finish, out=None, clock=None):
         self.id = f"pvp{PvpSession._next}"; PvpSession._next += 1
@@ -682,6 +686,8 @@ class PvpSession:
             cfg["turn_timer"] = 0
         self.views[0] = TR.YO2Duel([codes[0], codes[1]], first=first, cardmap=cardmap(), cfg=cfg, log=self.log)
         self.views[1] = TR.YO2Duel([codes[1], codes[0]], first=1 - first, cardmap=cardmap(), cfg=cfg, log=self.log)
+        for i in (0, 1):
+            self.views[i].place_manual = bool(self.place_manual[i])
         self.views[0].query = lambda: self._core().query(self.id)
         self.views[1].query = lambda: mirror_state(self._core().query(self.id))
         for i in (0, 1):
@@ -706,6 +712,12 @@ class PvpSession:
             evs = self._core().wait(self.id)
             last = evs[-1]
             kind = last.get("ev")
+            if self.stats is not None:                    # B51: contadores del perfil (nunca tumban el duelo)
+                try:
+                    self.stats.feed_many(evs)
+                except Exception as e:                    # noqa: BLE001
+                    self.log(f"[pvp] {self.id}: estadísticas del perfil: {e!r}")
+                    self.stats = None
             if self.clk:                                  # límite de tiempo: cada turno repone los presupuestos
                 for e in evs:
                     if e.get("ev") == "msg" and e.get("type") == "NEW_TURN" and e.get("player") in (0, 1):

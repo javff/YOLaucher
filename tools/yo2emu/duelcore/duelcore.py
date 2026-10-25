@@ -43,6 +43,10 @@ except ImportError:
 # Eventos que cierran un "turno de conversación": tras ellos el core espera algo de nosotros
 STOP_EVENTS = {"select", "end", "error"}
 
+# Variables de entorno que lee duelcore.mts al arrancar (el proceso hijo las hereda tal cual): banderas duelo.scripts_2008 y
+# duelo.compat_chaininfo del registro (yo2srv/config.py). Aqui solo se recogen para dejar constancia en `self.motor_env`.
+VARIABLES_MOTOR = ("YO2_SCRIPTS_2008", "YO2_SCRIPTS_2008_DIR", "YO2_COMPAT_CHAININFO")
+
 
 class DuelCoreError(RuntimeError):
     pass
@@ -83,6 +87,7 @@ class DuelCore:
         self._lock = threading.Lock()
         self.stderr_tail: collections.deque[str] = collections.deque(maxlen=200)
         self.ready: dict | None = None
+        self.motor_env = {k: os.environ[k] for k in VARIABLES_MOTOR if k in os.environ}
         # cwd: apps/server (tsx resuelve ahí sus node_modules); un .mjs empaquetado, su carpeta. VENDOR_DIR (data.ts):
         # con YO2_VENDOR, esa; con un .mjs sin VENDOR_DIR puesta a mano, rutas.vendor() (el .mjs ya no está en
         # apps/server/src/duel y su cálculo relativo no valdría). Con tsx y sin YO2_VENDOR, nada: como siempre.

@@ -96,6 +96,11 @@ def why_from_ocg(reason):
 FINISH_NORMAL = 0        # solo apunta la partida; en un match decide al llegar a 2 victorias / 3 partidas    C
 FINISH_FILL = 3          # en un match rellena las partidas que faltan hasta 3 con el mismo resultado          C
 FINISH_CLOSE = 5         # DAT_00cd82d0 = P0 directamente: el match se acaba YA con ese resultado             C
+# El oficial (51 rendiciones en los duellogs PvP de 2008-2009, 25 de duelo suelto y 26 de match; research/duelfin/NOTES.md
+# «Rendición en un match») mandaba P1 = 2 en el 0x4d de TODA rendición, no 0 ni 5: el cliente solo mira P1 == 5 (cerrar) y
+# == 3 (rellenar) (FUN_00794a90 / FUN_00794bd0, DAT_012a9090), así que 2 = «cuenta la partida» como el 0.            C
+FINISH_SURRENDER = 2
+REASON_SURRENDER = 12    # motivo del 0x05 de una rendición en el oficial (51/51); sin animación (solo 3..10 la tienen)   C
 
 C_LOSE_LP0 = 0x23        # motor: LP del jugador del bit 15 a 0 + LIFE_SET; P0 = motivo (al +0x30 del ganador) C
 # Rendición (agente 9). El menú de acciones pinta la etiqueta DAT_00cd4a10[bit]: «Rendirse» (4124) es el BIT 10, no
@@ -135,7 +140,7 @@ def duelscore(me=(0, 0, 0, 0), rival=(0, 0, 0, 0), x=0):
     return LS.duelscore(tuple(me), tuple(rival), x)
 
 
-def end_duel_msgs(winner, reason=WHY_LP, *, finish=FINISH_NORMAL, lp_zero=None, score=None):
+def end_duel_msgs(winner, reason=WHY_LP, *, finish=FINISH_NORMAL, lp_zero=None, score=None, official_surrender=False):
     """Mensajes del PUERTO DE DUELO para acabar la partida. Devuelve [(id, datos), ...] en orden.
 
     winner: 0 = gana el cliente, 1 = gana la NPC, None = empate.
@@ -143,18 +148,28 @@ def end_duel_msgs(winner, reason=WHY_LP, *, finish=FINISH_NORMAL, lp_zero=None, 
     finish: P1 de 0x4d (FINISH_NORMAL en duelo simple o partida de match; FINISH_CLOSE para cerrar un match).
     lp_zero: mandar antes el cmd 0x23 (LP del perdedor a 0 con animación). Por defecto sí en rendición/tiempo/
              desconexión (el LP no ha llegado a 0 por combate).
-    score: ((A0,A1,A2,A3), (B0,B1,B2,B3)) para DUELSCORE; por defecto victorias/derrotas de esta partida."""
+    score: ((A0,A1,A2,A3), (B0,B1,B2,B3)) para DUELSCORE; por defecto victorias/derrotas de esta partida.
+    official_surrender: la rendición como la mandaba el oficial (51/51 duellogs, C): SIN el 0x23 y con el 0x05 de motivo 12,
+             solo en la casilla que lee el cliente (P2 si P0 = 2, P1 si no; la otra a 0): perdedor (2, 0, 12) con B = 0x0005,
+             ganador (1, 12, 0) con B = 0x8005. El P1 del 0x4d lo elige quien llama (FINISH_SURRENDER)."""
     res = result_for_client(winner)
     motive = _MOTIVE.get(reason, REASON_NONE)
     out = []
+    off = bool(official_surrender) and reason == WHY_SURRENDER and winner is not None
     if lp_zero is None:
-        lp_zero = reason in (WHY_SURRENDER, WHY_TIMEOUT, WHY_DISCONNECT)
+        lp_zero = reason in (WHY_SURRENDER, WHY_TIMEOUT, WHY_DISCONNECT) and not off
     if lp_zero and winner is not None:
         loser = 1 - winner
         out.append((M_SETCOMMAND, LS.engine(C_LOSE_LP0, loser, motive)))
     # C_DUEL_END: B = jugador 0; P0 = resultado; P1 = motivo del jugador 0, P2 = del jugador 1. El cliente usa
     # P2 si P0 == 2 y P1 si no (FUN_00712840): ponemos el mismo en los dos.
-    out.append((M_SETCOMMAND, LS.engine(LS.C_DUEL_END, 0, res, motive, motive)))
+    if off:
+        # B: el oficial pone el bit 15 (jugador 1) en el 0x05 del GANADOR y lo deja a 0 en el del perdedor (51/51, C); el
+        # cliente solo mira ese bit con motivos 3..10 (FUN_00712840), así que con el 12 da igual: se copia por fidelidad.
+        m1, m2 = (0, REASON_SURRENDER) if res == RESULT_LOSE else (REASON_SURRENDER, 0)
+        out.append((M_SETCOMMAND, LS.engine(LS.C_DUEL_END, 0 if res == RESULT_LOSE else 1, res, m1, m2)))
+    else:
+        out.append((M_SETCOMMAND, LS.engine(LS.C_DUEL_END, 0, res, motive, motive)))
     if score is None:
         me = (1 if res == RESULT_WIN else 0, 1 if res == RESULT_LOSE else 0, 1 if res == RESULT_DRAW else 0, 0)
         rv = (me[1], me[0], me[2], 0)
@@ -170,6 +185,15 @@ def surrender_confirm_msgs(text=SURRENDER_TEXT):
     return [(M_SETCOMMAND, LS.setcommand(LS.T_LIST_RESET, 0, (1,))),
             (M_SETCOMMAND, LS.setcommand(LS.T_LIST_ADD, 0, (int(text), SURRENDER_CLASS))),
             (M_SETCOMMAND, LS.setcommand(LS.T_VIEW, 0x32, (2, 0, 0)))]
+
+
+def info_dialog_msgs(text):
+    """Cartel de aceptar del cliente (CUOkDialog, DUEL_VIEW 0x32 tipo 0) con un texto de dlg_text. Formato de los duellogs
+    oficiales (dlg 307 «la Draw Phase se salta», 339, 262): lista A de 1 pareja (texto, clase 2) + 0x1b B = 0x32 con
+    P = (0, texto, 0). Con el dlg 82 es el «Puedes rendirte a partir del 10º turno» del oficial.  C (formato)"""
+    return [(M_SETCOMMAND, LS.setcommand(LS.T_LIST_RESET, 0, (1,))),
+            (M_SETCOMMAND, LS.setcommand(LS.T_LIST_ADD, 0, (int(text), SURRENDER_CLASS))),
+            (M_SETCOMMAND, LS.setcommand(LS.T_VIEW, 0x32, (0, int(text), 0)))]
 
 
 def is_surrender(data):

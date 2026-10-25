@@ -200,13 +200,13 @@ def _lineas_consola(src):
 
 def _scratchpad_citados():
     """Scripts del scratchpad citados en HANDOFF/NOTES (líneas que dicen «scratchpad» y nombran un .py): se buscan en los
-    scratchpads de las sesiones del proyecto (YO2_SCRATCH\\*\\*\\scratchpad)."""
+    scratchpads de las sesiones del proyecto (%TEMP%\\yo2-scratch\\*\\*\\scratchpad)."""
     nombres = set()
     for md in _ficheros(".md"):
         for linea in _leer(md).splitlines():
             if "scratchpad" in linea.lower():
                 nombres |= set(re.findall(r"([\w-]+\.py)\b", linea))
-    raiz = os.environ.get("YO2_SCRATCH") or os.path.join(os.environ.get("LOCALAPPDATA", ""), "Temp", "yo2")   # no TEMP: la batería lo cambia
+    raiz = os.path.join(os.environ.get("LOCALAPPDATA", ""), "Temp", "yo2-scratch")   # no TEMP: la batería lo cambia
     hallados = {}
     for n in sorted(nombres):
         if glob.glob(os.path.join(comun.EMU, "**", n), recursive=True):

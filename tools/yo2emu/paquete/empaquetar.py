@@ -25,6 +25,7 @@ Deja en paquete/_build/ (ignorado en git):
         python/                       Python 3.12 embeddable; python312._pth añade ..\\server\\yo2emu y ..\\server
         node/node.exe                 Node 22 LTS (>= 22.13: node:sqlite)
         engine/duelcore.mjs           el motor (bundle_duelcore.py; el WASM va dentro)
+        engine/scripts_2008/cNNNNN.lua  scripts de las cartas que se juegan con su texto de 2008 (duelcore/scripts_2008/LEEME.md)
         vendor/                       cards.cdb, strings.conf, CardScripts/ (sin .git) — ProjectIgnis, AGPL-3.0
         server/yo2emu/...             SOLO lo que el servidor carga (lista SERVIDOR, sacada de una traza real de duelos
                                       NPC/PvP/tienda/salas + RUTAS.md/DATOS_JUEGO.md); server/build_cards.py y kcej_dat.py
@@ -231,6 +232,12 @@ def montar_motor():
     sys.path.insert(0, AQUI)
     import bundle_duelcore
     r = bundle_duelcore.empaquetar(os.path.join(ARBOL, "engine", "duelcore.mjs"))
+    # scripts de 2008 (duelcore/scripts_2008, sustituyen a los de CardScripts): junto al .mjs, que es donde duelcore.mts los
+    # busca (o en YO2_SCRIPTS_2008_DIR). Solo los cNNNNN.lua (el LEEME.md se queda en el repo).
+    origen = os.path.join(EMU, "duelcore", "scripts_2008")
+    for f in sorted(os.listdir(origen)):
+        if re.fullmatch(r"c\d+\.lua", f):
+            _copiar(os.path.join(origen, f), os.path.join(ARBOL, "engine", "scripts_2008", f))
     return r["sha256"]
 
 

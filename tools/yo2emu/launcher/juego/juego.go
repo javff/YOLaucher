@@ -139,6 +139,8 @@ type Lanzador struct {
 	Datos string // %LOCALAPPDATA%\YO2Online: aquí se extraen frida-inject.exe y el gancho
 	Logf  func(string, ...any)
 	Log   io.Writer // salida de frida-inject (nil = descartada)
+	// Ventana: tamaño de la ventana del juego (ventana.go): "" = Original, "1.5", "2" o "fit". Solo con el gancho por DLL.
+	Ventana string
 	// Oculto: no abrir la ventana negra de frida-inject (la ventana del lanzador no tiene consola; JoinServer sí y la comparte).
 	Oculto bool
 }
@@ -233,6 +235,12 @@ func (l *Lanzador) LanzarCon(carpeta string, diag bool, offset int) (*Partida, e
 		// El manifiesto de yo2.exe pide administrador; así arranca como usuario normal (basta en el entorno del hijo).
 		cmd.Env = append(os.Environ(), "__COMPAT_LAYER=RunAsInvoker", "YO2ONLINE_NET=1", "YO2ONLINE_NET_LOG="+logDLL,
 			"YO2ONLINE_OFFSET="+strconv.Itoa(offset))
+		// Tamaño de ventana (ventana.go). Una YO2ONLINE_WINDOW heredada del entorno no cuenta: manda el ajuste del lanzador.
+		cmd.Env = append(cmd.Env, EnvVentana+"=")
+		if ev := entornoVentana(l.Ventana); ev != nil {
+			cmd.Env = append(cmd.Env, ev...) // el último valor gana
+			l.logf("ventana: tamaño %q (ventana ampliada de la DLL)", l.Ventana)
+		}
 		// Sin OcultarVentana: eso escondería la ventana del juego.
 	} else {
 		fi, hook, err := l.Extraer(diag, offset)
@@ -248,7 +256,10 @@ func (l *Lanzador) LanzarCon(carpeta string, diag bool, offset int) (*Partida, e
 		os.MkdirAll(tmp, 0o700)
 		// El manifiesto de yo2.exe pide administrador; así arranca como usuario normal (lo heredan frida-inject y el juego).
 		// YO2ONLINE_NET=0: si se quedó nuestra version.dll en la carpeta, que no enganche también.
-		cmd.Env = append(os.Environ(), "__COMPAT_LAYER=RunAsInvoker", "TEMP="+tmp, "TMP="+tmp, "YO2ONLINE_NET=0")
+		cmd.Env = append(os.Environ(), "__COMPAT_LAYER=RunAsInvoker", "TEMP="+tmp, "TMP="+tmp, "YO2ONLINE_NET=0", EnvVentana+"=")
+		if entornoVentana(l.Ventana) != nil {
+			l.logf("ventana: el tamaño %q hace falta el gancho por DLL; con frida se ignora", l.Ventana)
+		}
 		if l.Log != nil {
 			cmd.Stdout, cmd.Stderr = l.Log, l.Log
 		}

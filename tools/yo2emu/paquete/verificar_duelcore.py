@@ -8,8 +8,8 @@ Qué hace:
  2. Juega los mismos duelos en los dos (semillas fijas, alternando quién empieza, reglas MR5 y MR1, más un duelo en modo
     cerebro con la NPC decidida por SimplePolicy desde Python) y compara la secuencia COMPLETA de eventos, quitando solo
     lo que depende del reloj (`ms`, `load_ms`, `pid`).
- 3. Pasa con el .mjs las pruebas de duelcore/: test_bucle.py (20 duelos + reproducibilidad), test_errores.py y
-    test_cerebro.py.
+ 3. Pasa con el .mjs las pruebas de duelcore/: test_bucle.py (20 duelos + reproducibilidad), test_errores.py,
+    test_cerebro.py y test_errata_2008.py (los scripts de 2008 viajan junto al .mjs: se copian a la carpeta temporal).
 Sale con 0 si todo es igual y las pruebas dan OK.
 """
 import argparse
@@ -121,6 +121,11 @@ def main():
     tmp = tempfile.mkdtemp(prefix="duelcore_mjs_")
     mjs = os.path.join(tmp, "duelcore.mjs")
     shutil.copy2(a.mjs, mjs)
+    # como en el paquete (engine/scripts_2008 junto al .mjs): los scripts de 2008 que duelcore.mts lee de su carpeta
+    os.makedirs(os.path.join(tmp, "scripts_2008"))
+    for f in os.listdir(os.path.join(DCDIR, "scripts_2008")):
+        if f.endswith(".lua"):
+            shutil.copy2(os.path.join(DCDIR, "scripts_2008", f), os.path.join(tmp, "scripts_2008", f))
     launch = [a.node, "--disable-warning=ExperimentalWarning", mjs]
     print(f"node: {a.node}  VENDOR_DIR={os.environ['VENDOR_DIR']}\nmjs:  {mjs} ({os.path.getsize(mjs):,} B)")
     fallos = []
@@ -139,6 +144,8 @@ def main():
         print(f"mjs: {ready_mjs.get('cards')} cartas, carga {ready_mjs.get('load_ms')} ms, total {t_mjs:.1f} s")
         if ready_tsx.get("cards") != ready_mjs.get("cards"):
             fallos.append("distinto nº de cartas cargadas")
+        if ready_tsx.get("scripts_2008") != ready_mjs.get("scripts_2008"):
+            fallos.append("distintos scripts de 2008 cargados: tsx %s, mjs %s" % (ready_tsx.get("scripts_2008"), ready_mjs.get("scripts_2008")))
         nev = 0
         for (na, la), (nb, lb) in zip(ref, nue):
             igual = limpio(la) == limpio(lb)
@@ -150,7 +157,7 @@ def main():
             fallos.append("distinto número de duelos")
         print(f"comparados {len(ref)} duelos/consultas, {nev} eventos")
 
-        for script, args in (("test_bucle.py", ["20"]), ("test_errores.py", []), ("test_cerebro.py", [])):
+        for script, args in (("test_bucle.py", ["20"]), ("test_errores.py", []), ("test_cerebro.py", []), ("test_errata_2008.py", [])):
             rc, salida = con_lanzador(launch, script, args)
             ult = [x for x in salida.strip().splitlines() if x.strip()][-1:] or [""]
             print(f"  {script} {' '.join(args)} con el .mjs: rc={rc}  {ult[0][:150]}")

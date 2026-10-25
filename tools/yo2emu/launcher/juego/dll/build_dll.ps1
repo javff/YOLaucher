@@ -15,8 +15,10 @@
 #   1. MinGW-w64 de 32 bits: i686-w64-mingw32-gcc.exe o i686-w64-mingw32-clang.exe (w64devkit x86, llvm-mingw, MSYS2)
 #   2. zig.exe (zig cc -target x86-windows-gnu)
 #   3. cl.exe de MSVC para x86 (abrir "x86 Native Tools Command Prompt" de Visual Studio Build Tools antes)
-# Sin CRT: la DLL solo importa kernel32.dll. Al acabar se comprueba con python + pefile (si estan): PE de 32 bits, las 17
-# exportaciones de version.dll, solo KERNEL32 importado y la marca "YO2ONLINE-NETDLL" dentro.
+# Sin CRT: la DLL solo importa kernel32.dll, user32.dll y gdi32.dll (las dos ultimas, para la ventana ampliada: yo2.exe ya
+# las carga). Al acabar se comprueba con python + pefile (si estan): PE de 32 bits, las 17 exportaciones de version.dll,
+# solo KERNEL32/USER32/GDI32 importado y la marca "YO2ONLINE-NETDLL" dentro. Tambien pasa las pruebas de las cuentas
+# (test_ventana.c) con el gcc normal de la carpeta del compilador, si lo hay.
 param([string]$Compilador = "")
 $ErrorActionPreference = "Stop"
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path        # ...\launcher\juego\dll
@@ -65,7 +67,7 @@ $env:Path = (Split-Path $cc) + ";" + $env:Path   # gcc de w64devkit busca as/ld 
 $gnu = @("-O2", "-s", "-shared", "-nostdlib", "-ffreestanding", "-fno-builtin", "-fno-stack-protector",
          "-fno-asynchronous-unwind-tables", "-Wall", "-Wno-unused-function",
          "-Wl,--entry,_DllMain@12", "-Wl,--image-base,0x6a5d0000", "-Wl,--dynamicbase", "-Wl,--nxcompat",
-         $src, $def, "-lkernel32", "-o", $tmp)
+         $src, $def, "-lkernel32", "-luser32", "-lgdi32", "-o", $tmp)
 if ($nombre -eq "zig") {
     & $cc cc -target x86-windows-gnu @gnu
 } elseif ($nombre -eq "cl") {
@@ -74,7 +76,7 @@ if ($nombre -eq "zig") {
     if ($LASTEXITCODE -eq 0) {
         $link = Join-Path (Split-Path $cc) "link.exe"
         & $link /nologo /DLL /MACHINE:X86 /NODEFAULTLIB /ENTRY:DllMain /DEF:$def /BASE:0x6a5d0000 /DYNAMICBASE /NXCOMPAT `
-            /OUT:$tmp $obj kernel32.lib
+            /OUT:$tmp $obj kernel32.lib user32.lib gdi32.lib
     }
 } else {
     & $cc @gnu
@@ -95,9 +97,9 @@ assert pe.FILE_HEADER.Machine == 0x14c, "no es de 32 bits"
 ex = sorted((s.name or b"").decode() for s in pe.DIRECTORY_ENTRY_EXPORT.symbols)
 assert len(ex) == 17 and "GetFileVersionInfoA" in ex and "VerQueryValueA" in ex, ex
 imp = [e.dll.decode().upper() for e in getattr(pe, "DIRECTORY_ENTRY_IMPORT", [])]
-assert imp == ["KERNEL32.DLL"], imp
+assert imp and set(imp) <= {"KERNEL32.DLL", "USER32.DLL", "GDI32.DLL"} and "KERNEL32.DLL" in imp, imp
 assert b"YO2ONLINE-NETDLL" in open(sys.argv[1], "rb").read(), "falta la marca"
-print("OK: PE32, 17 exportaciones, importa solo KERNEL32, marca presente")
+print("OK: PE32, 17 exportaciones, importa solo", imp, "marca presente")
 '@
     $chkf = Join-Path $env:TEMP "yo2net-chk.py"
     Set-Content -Path $chkf -Value $chk -Encoding ASCII

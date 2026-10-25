@@ -285,6 +285,18 @@
               <span>Version</span><div><small id="aVersion"></small></div>
             </div>
           </div>
+          <!-- PANTALLA (PAN, 24-10): tamano de la ventana del juego (ventana ampliada de la DLL). Apagado por defecto. -->
+          <div class="panel" id="aPantalla"><h3><svg class="i"><use href="#i-gear"/></svg>Display</h3>
+            <div class="pc aj">
+              <span>Window size</span>
+              <div class="fila-aj"><div class="seg" id="aVentana" role="radiogroup" aria-label="Window size">
+                <button class="b claro mini" data-vent="" role="radio" aria-checked="false">Original (1024x768)</button>
+                <button class="b claro mini" data-vent="1.5" role="radio" aria-checked="false">1.5x</button>
+                <button class="b claro mini" data-vent="2" role="radio" aria-checked="false">2x</button>
+                <button class="b claro mini" data-vent="fit" role="radio" aria-checked="false">Fit screen (borderless)</button></div>
+                <small id="aVentanaTxt">Takes effect the next time you open the game.</small></div>
+            </div>
+          </div>
           <!-- RED (NET, 12-10; red.js): puerto fijo del servidor propio y nodos de arranque -->
           <div class="panel" id="aRed"><h3><svg class="i"><use href="#i-globe"/></svg>Network</h3>
             <div class="pc aj">

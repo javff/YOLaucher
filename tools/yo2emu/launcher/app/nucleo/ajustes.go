@@ -30,6 +30,8 @@ type Ajustes struct {
 	MostrarOcultos bool     `json:"mostrar_ocultos"`
 	Tema           string   `json:"tema,omitempty"`    // "" o "light" = claro (por defecto); "system" = el de Windows; "dark"
 	Ocultos        []string `json:"ocultos,omitempty"` // peer IDs
+	// Ventana: Ajustes → Display → «Window size» (juego/ventana.go): "" = Original (1024x768, por defecto), "1.5", "2" o "fit".
+	Ventana string `json:"ventana,omitempty"`
 	// Servidores: «My servers» (formato 2). Nunca va a la página así (lleva las claves): ver MisServidores.
 	Servidores []ServidorGuardado `json:"servidores"`
 	// Formato 1: solo se leen para migrar (y nunca se vuelven a escribir).

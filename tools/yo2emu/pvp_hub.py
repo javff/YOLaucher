@@ -421,11 +421,30 @@ class Hub:
         s = getattr(c, "sess", None)
         if s is None:
             return None
+        old = s.lobby
+        if old is not None and old is not c:
+            self._supersede(s, old)                  # antes de cambiar el pid: la salida del bloque lo usa
         with self.lock:
             s.slot = int(slot) & 3
             s.pid = self.pid_for(s, s.slot)
             s.name, s.lang, s.lobby = name or "Duelista", lang, c
         return s
+
+    def _supersede(self, s, old):
+        """La cuenta s abre una conexión de lobby nueva (0x4100) y aún tiene la anterior `old` apuntada. El cliente solo
+        usa una a la vez: la vieja ya no es suya. Normalmente ya mandó su 0x0003 (salió del bloque y se borraron sus salas:
+        esto no hace nada); si el cliente se cayó o la red se cortó, la conexión vieja sigue abierta y muda hasta
+        IDLE_TIMEOUT (600 s) y, sin esto, la cuenta nueva «ya estaba en el bloque» (enter no la anunciaba) con el estado
+        viejo (100, «en duelo»…) y su sala vieja, de una conexión que ya no es la suya, seguía en las listas de los demás: «la
+        sala ya no existe» (−495) al retarle, hasta salir de la zona y volver a entrar (24-10, research/lobby/NOTES.md §9d)."""
+        LP = self.env.get("LP")
+        try:
+            if LP is not None and hasattr(LP, "on_close"):
+                LP.on_close(old)                     # sus salas, retos pendientes y estado (idempotente)
+        except Exception as e:                       # noqa: BLE001
+            self.log(f"[hub] conexión de lobby vieja de {s!r}: {e!r}")
+        if s.block is not None:
+            self.leave(s, "nueva conexión de lobby")
 
     def by_pid(self, pid):
         with self.lock:
@@ -615,12 +634,41 @@ class Hub:
             s.state_extra = (_name16(rival_name) + struct.pack(">BHHH", b & 0xff, *[v & 0xffff for v in u])
                              if 0x67 <= s.state <= 0x6a else b"")
             rest = self.others(s)
-        if 0x67 <= s.state <= 0x6a:
-            msg = struct.pack(">IBB", s.pid, s.state, self.ablock_of(s)) + s.state_extra
-        else:
-            msg = self.join_msg(s)
+        msg = self.state_msg(s)
         for o in rest:
             self._post(o, 0x3112, msg)
+
+    def state_msg(self, s, known=True):
+        """0x3112 que deja a los demás con el estado de s: op 0x67..0x6a (cambio de estado, 16 B nombre, u8, 3×u16) si ya
+        lo tenían en la lista (known); si no, op 1 con LIST1/LIST2/LIST5 (crea el registro)."""
+        if known and 0x67 <= s.state <= 0x6a:
+            return struct.pack(">IBB", s.pid, s.state, self.ablock_of(s)) + s.state_extra
+        return self.join_msg(s)
+
+    # ------------------------------------------------------------ LIST1 y avisos a la vez (24-10)
+    def view_of(self, o):
+        """Lo que la LIST1 de o dice de él y puede cambiar mientras se manda: (estado, bloque de área, datos «en duelo»)."""
+        return (int(o.state or 0) & 0xff, self.ablock_of(o), bytes(o.state_extra or b""))
+
+    def reconcile(self, s, view):
+        """[(0x3112, datos)] que corrigen una LIST1 de s hecha cuando los demás eran `view` ({pid: view_of}): el cliente
+        vacía su lista con 0x4211 y escribe lo que trae 0x4212, así que un aviso de estado/entrada/salida que llegue entre
+        el momento en que se mira a los demás y el 0x4213 (la LIST1 se arma antes de mandarla y cada mensaje espera
+        0,25 s) se pierde o lo pisa una LIST1 vieja: el jugador queda sin «Retar» hasta que alguien vuelva a entrar.
+        Lo que sigue igual no se manda. Si cambia otra vez mientras se manda esto, ese cambio llega por su aviso."""
+        out = []
+        with self.lock:                                  # solo mirar quién hay y cómo está; armar los mensajes (lee el
+            now = {o.pid: (o, self.view_of(o)) for o in self.others(s)}      # perfil del disco) fuera del candado, como set_state
+        for pid, (o, v) in now.items():
+            old = view.get(pid)
+            if old is None:
+                out.append((0x3112, self.state_msg(o, known=False)))         # llegó (o se perdió) durante la LIST1
+            elif old != v:
+                out.append((0x3112, self.state_msg(o)))
+        for pid in view:
+            if pid not in now:
+                out.append((0x3112, struct.pack(">IBB", pid, 0, 0)))          # se fue durante la LIST1
+        return out
 
     def on_lobby_msg(self, c, msg_id, data):
         """Antes de contestar en lobby_reply: apunta lo que los demás tienen que ver y se lo reenvía. No contesta a c

@@ -2,13 +2,13 @@
 
 > Generado por `python -m yo2srv.gen_banderas` desde `yo2srv/config.py`. **No se edita a mano**: cambia el registro y regenera.
 
-201 banderas. Perfil por defecto: `vanilla` (`YO2_PERFIL=vanilla|enhanced`). Hoy `enhanced` = `vanilla` en todas (`enhanced` aparece como «= vanilla»). Precedencia al arrancar: perfil → `admin_banderas.json` → variable de entorno `YO2_*` → cambio en caliente.
+221 banderas. Perfil por defecto: `vanilla` (`YO2_PERFIL=vanilla|enhanced`). Hoy `enhanced` = `vanilla` en todas (`enhanced` aparece como «= vanilla»). Precedencia al arrancar: perfil → `admin_banderas.json` → variable de entorno `YO2_*` → cambio en caliente.
 
 | Origen | Banderas | Qué significa |
 |---|---:|---|
-| `oficial` | 128 | como el original (C/P en las notas) o intento de serlo |
-| `inventado` | 14 | nuestro, aprobado y detrás de una bandera (no es 1:1) |
-| `tecnico` | 39 | sin efecto de juego: rutas, puertos, límites, logs, pruebas, seguridad |
+| `oficial` | 146 | como el original (C/P en las notas) o intento de serlo |
+| `inventado` | 15 | nuestro, aprobado y detrás de una bandera (no es 1:1) |
+| `tecnico` | 40 | sin efecto de juego: rutas, puertos, límites, logs, pruebas, seguridad |
 | `?` | 20 | sin decidir (ver más abajo) |
 
 ## Inventadas encendidas en vanilla (candidatas a pasar a enhanced)
@@ -32,12 +32,13 @@ Banderas de origen `inventado` cuyo valor en vanilla NO es «apagado» (y por ta
 |---|---|---|
 | chain_event_p2 | research/traductor/translator.py `_chain_priority`: `cfg.get("chain_event_p2", True)`; la clave NO está en DEFAULT_CFG (por eso no es una bandera del registro) | ENCENDIDA en vanilla (P2 2 si alguna opción es un efecto con evento); `cfg["chain_event_p2"] = False` deja la tabla pura |
 | Aviso «Mover» (texto 5092) | lado del cliente (Frida): `launcher/aviso_sala_hook.js` y copia en `net_hook.js` (research/lobby/NOTES.md «Aviso al pulsar MOVE con sala abierta») | APAGADO en vanilla: solo con el fichero `yo2-aviso-sala.txt` junto a yo2.exe o `YO2_AVISO_SALA=1` |
+| Tamaño de ventana del cliente (Ajustes → Display → «Window size») | lado del cliente (DLL propia): `launcher/juego/dll/yo2net.c` (ventana ampliada, cuentas en `yo2win.h`), valor en `lanzador.json` («ventana») y `YO2ONLINE_WINDOW` (rama rx/PAN) | APAGADO en vanilla: «Original (1024x768)»; 1.5x / 2x / «Fit screen» solo si el jugador lo elige en el lanzador |
 | «Mirar» un duelo contra una NPC | `npc_watch.py` (research/lobby/NOTES.md «C2»): cuelga de `hub.NPC_DUEL_STATE` y `lobby.WATCH`, sin bandera propia | ENCENDIDO en vanilla mientras esas dos lo estén |
 | Torpeza de la IA de las NPC | `research/ia/brain.py` (`NpcProfile.torpeza`, por nivel de la NPC; research/ia/BRAIN.md): parte de `ocg.USE_BRAIN`, sin bandera propia | ENCENDIDA en vanilla mientras `ocg.USE_BRAIN` lo esté |
 
 ### Inventadas apagadas en vanilla (no molestan)
 
-`duelo.lp_resync` (False), `duelo.chain_card_name` (False), `duelo.chain_one_name` (False), `ocg.NPC_DECKS_EXTRA` (False), `lobby.NPC_CHALLENGE` (None), `pvp.WATCH_SEND_PREP` (False)
+`duelo.lp_resync` (False), `duelo.chain_card_name` (False), `duelo.chain_one_name` (False), `ocg.NPC_DECKS_EXTRA` (False), `lobby.NPC_CHALLENGE` (None), `pvp.WATCH_SEND_PREP` (False), `persistencia.STAT_COMEBACK_LP` (0)
 
 ## Origen dudoso (`?`)
 
@@ -140,6 +141,10 @@ Sin evidencia clara en las notas (`research/**/NOTES.md`, `HANDOFF.md`, `TIEMPO.
 | `pvp.PVP_MATCH` | `'1'` | = vanilla | oficial | Match al mejor de 3 (1; 0 = como antes; cerrar = una partida y fin) |
 | `pvp.MATCH_WAIT` | `300.0` | = vanilla | tecnico | Segundos de espera entre partidas de un match |
 | `pvp.PVP_WATCH` | `True` | = vanilla | oficial | Espectador de PvP (lado pvp_match de lobby.WATCH) |
+| `pvp.SURRENDER_MIN_TURN` | `10` | = vanilla | oficial | Turno global a partir del cual se puede rendir (dlg 82 «a partir del 10º turno»; 0 = siempre) |
+| `pvp.SURRENDER_ROOM_OPTION` | `True` | = vanilla | oficial | Respetar la opción de sala «Rendirse OFF» (byte 21 de 0x4288): sin rendición en esa sala |
+| `pvp.SURRENDER_ENDS_MATCH` | `False` | = vanilla | oficial | Rendirse en un match lo cierra entero (0x4d P1 = 5); apagada = solo se pierde la partida en curso y el match sigue (como el oficial) |
+| `pvp.SURRENDER_FIN_OFICIAL` | `True` | = vanilla | oficial | Fin por rendición como el oficial: sin 0x23, 0x05 con motivo 12, 0x4d P1 = 2 (apagada = 0x23 + motivo 0 + P1 de partida) |
 | `pvp.WATCH_SEND_PREP` | `False` | = vanilla | inventado | Al espectador, un 0x600c antes del 0x6006 (vidas) |
 | `pvp.TEST_AUTO` | `False` | = vanilla | tecnico | Modo de prueba (fake_client pvp): solo instancias de prueba |
 | `pvp.ATTACH_TIMEOUT` | `90.0` | = vanilla | tecnico | Segundos para que los dos jugadores conecten al duelo |
@@ -196,6 +201,8 @@ Sin evidencia clara en las notas (`research/**/NOTES.md`, `HANDOFF.md`, `TIEMPO.
 | `persistencia.COUNTRY_BY_LANG` | `True` | = vanilla | inventado | País (bandera) de un personaje nuevo según el idioma del cliente (0x4100): JP US DE IT FR ES KR; si no, DEFAULT_COUNTRY |
 | `persistencia.TRUNK_START` | `'all3'` | = vanilla | ? | Baúl inicial de un jugador nuevo (deck \| all3 \| empty) |
 | `persistencia.TP_RANK` | `False` | = vanilla | oficial | Puesto de ranking TP en 0x3012 |
+| `persistencia.STATS_PVP_ON` | `True` | = vanilla | oficial | Contadores del perfil recogidos durante un PvP: tributos, fusiones, Especiales, activaciones, cartas del Side Deck (B51) |
+| `persistencia.STAT_COMEBACK_LP` | `0` | = vanilla | inventado | Remontada (victorias/derrotas anunciadas): LP de diferencia que cuentan; 0 = no se cuentan |
 | `persistencia.NPC_IN_RECORD` | `True` | = vanilla | ? | Los duelos contra NPC cuentan en Victorias/Derrotas |
 | `persistencia.NPC_MP_WIN` | `0` | = vanilla | oficial | Millas por ganar a una NPC |
 | `persistencia.NPC_MP_LOSE` | `0` | = vanilla | oficial | Millas por perder contra una NPC |
@@ -239,6 +246,8 @@ Sin evidencia clara en las notas (`research/**/NOTES.md`, `HANDOFF.md`, `TIEMPO.
 | `duelo.yesno_card` | `True` | = vanilla | oficial | SÍ/NO con la carta |
 | `duelo.yesno_sys_text` | `True` | = vanilla | oficial | SÍ/NO sin carta con el texto del sistema de ocgcore (§25) |
 | `duelo.battle_damage_real` | `True` | = vanilla | oficial | Daño de batalla real (de ocgcore) |
+| `duelo.battle_damage_split` | `True` | = vanilla | oficial | El 0x17 lleva solo el daño de batalla (el de efecto, p. ej. la ficha de Ojama, sale aparte) |
+| `duelo.lp_type_oficial` | `True` | = vanilla | oficial | Tipo del 0x25 como el oficial: 1 batalla, 0 efecto, 2 coste (antes al revés; solo cambia estadísticas del cliente) |
 | `duelo.lp_reconcile` | `True` | = vanilla | inventado | Reconciliación del marcador de LP del cliente con ocgcore (§24) |
 | `duelo.lp_resync` | `False` | = vanilla | inventado | Reenviar los LP tras cada cambio |
 | `duelo.lp_set_direct` | `True` | = vanilla | tecnico | MSG_LPUPDATE de ocgcore (Duel.SetLP, reinicio) -> 0x26 con el LP absoluto en ese momento (§31) |
@@ -262,19 +271,24 @@ Sin evidencia clara en las notas (`research/**/NOTES.md`, `HANDOFF.md`, `TIEMPO.
 | `duelo.aim_target_bit` | `11` | = vanilla | oficial | Bit de las cartas objetivo con la espada (11 = clic directo) |
 | `duelo.look_modes` | `{14: 1, 15: 4, 12: 1}` | = vanilla | oficial | Zonas con «Ver detalles» (zona -> modo) |
 | `duelo.list_picks` | `True` | = vanilla | oficial | Elecciones en lista |
+| `duelo.place_manual` | `True` | = vanilla | oficial | Colocación manual: con «Auto Card Placing» OFF en el cliente (u8 de 0x61fe = 1) el jugador elige la zona de lo que invoca o coloca |
 | `duelo.card_link` | `True` | = vanilla | oficial | Vínculo carta → carta (equipos, Círculo…) |
 | `duelo.link_kind_equip` | `10` | = vanilla | oficial | Tipo de vínculo para equipos |
 | `duelo.link_kind_target` | `9` | = vanilla | oficial | Tipo de vínculo que no es equipo |
 | `duelo.link_target_anim` | `True` | = vanilla | oficial | Animación de objetivo (0x42) o silencioso (0x36) |
 | `duelo.target_lockon` | `True` | = vanilla | oficial | Marca de objetivo al activar |
+| `duelo.lockon_pile` | `True` | = vanilla | oficial | Marca de objetivo también sobre cartas del cementerio y desterradas (como el oficial; NOTES §35) |
+| `duelo.chain_reveal` | `True` | = vanilla | oficial | Animación y sonido de «se activa» en cada activación de efecto (0x2e como el oficial; NOTES §35) |
 | `duelo.counters` | `True` | = vanilla | oficial | Contadores visibles |
 | `duelo.swap_cmd` | `True` | = vanilla | oficial | Intercambio de criaturas (0x3e) |
+| `duelo.monst_shuffle` | `True` | = vanilla | oficial | Barajar monstruos colocados (Magical Hats) con 0x49 MONST_SHUFFLE, como el oficial (NOTES MIS-1) |
 | `duelo.field_move_3d` | `True` | = vanilla | oficial | Cambio de control / mover de zona (0x3d) |
 | `duelo.toss_anim` | `True` | = vanilla | oficial | Animación de moneda y dado |
 | `duelo.coin_call` | `1` | = vanilla | oficial | Resultado resaltado al caer la moneda |
 | `duelo.tribute_anim` | `True` | = vanilla | oficial | Animación de tributo |
 | `duelo.tribute_mark` | `False` | = vanilla | oficial | Marca 0x4a antes de cada 0x46 de tributo |
 | `duelo.fusion_anim` | `True` | = vanilla | oficial | Animación de fusión |
+| `duelo.fusion_official` | `True` | = vanilla | oficial | Fusión con el orden del oficial: 0x4b de todos los materiales, luego 0x4c y movimiento sin destrucción por material |
 | `duelo.turn_timer` | `180` | = vanilla | oficial | Segundos por turno (0 = sin límite) |
 | `duelo.turn_limit` | `True` | = vanilla | oficial | Límite de tiempo por turno activo |
 | `duelo.tiempo_gunslinger` | `60.0` | = vanilla | oficial | Segundos por jugada en GUNSLINGER |
@@ -292,6 +306,13 @@ Sin evidencia clara en las notas (`research/**/NOTES.md`, `HANDOFF.md`, `TIEMPO.
 | `duelo.declare_hint` | `True` | = vanilla | oficial | Pista al declarar carta / tipo |
 | `duelo.ritual_sum` | `True` | = vanilla | oficial | Invocación por Ritual: el jugador elige los sacrificios con las ventanas del oficial (estrellas, marcas, lista del mazo); apagada = decide bot.ts |
 | `duelo.turn_counter_player` | `True` | = vanilla | oficial | Cuenta de Final Countdown / Crush Card Virus / Gold Sarcophagus… al cliente (0x3b con P2, como el oficial; el cliente 080912 no la pinta) |
+| `duelo.scripts_2008` | `None` | = vanilla | oficial | Scripts de 2008 (duelcore/scripts_2008): las cartas cuyo texto en el cliente 2008 era otro que el de CardScripts (erratas posteriores) se juegan como en 2008; 0 = scripts modernos de CardScripts (sin poner = 1) |
+| `duelo.compat_chaininfo` | `None` | = vanilla | tecnico | Compat CHAININFO de duelcore: el chain.lua de CardScripts pide banderas que ocgcore-wasm 0.1.2 no conoce y cortaba las operaciones que registran un efecto (Strike Ninja no volvia); 0 = sin compat, solo para diagnosticar (sin poner = 1) |
+| `duelo.opp_hand_pick` | `True` | = vanilla | oficial | Elegir una carta de la mano del rival (Trap Dustshoot, The Forceful Sentry, Confiscation…): aviso 244 y clic en su mano; apagada = decide bot.ts |
+| `duelo.yesno_texts` | `True` | = vanilla | oficial | SÍ/NO de una carta con SU texto del cliente (Ryko «¿Destruir esta carta?», Judgment of Anubis, Messenger of Peace, Six Samurai «¿Destruir otra carta en lugar de…?»): la description de ocgcore es código<<20\|n; apagada = el genérico «¿activar el efecto?» de antes |
+| `duelo.option_yn` | `True` | = vanilla | oficial | Yubel y Yu-Jo Friendship: su elección de dos efectos es un SÍ/NO del cliente (dlg 233 / 298) en vez de decidir bot.ts; apagada = decide bot.ts (opción 0) |
+| `duelo.hand_open` | `True` | = vanilla | oficial | Mano ENTERA del rival a la vista (Trap Dustshoot, Crush Card Virus, Royal Tribute…) con 0x52 [1]/[0] como el oficial, y el 0x29 de la carta elegida; apagada = un 0x51 por carta (que abre su panel de detalle cada vez) |
+| `duelo.number_texts` | `True` | = vanilla | oficial | Diálogo de número con el título y la etiqueta de la carta (Card Trooper 330/331 como el oficial, Sixth Sense 296); apagada = los genéricos «Elige una cantidad» / «%d» |
 | `ocg.USE_BRAIN` | `True` | = vanilla | inventado | La NPC juega con el cerebro (research/ia); sin él, bot.ts |
 | `ocg.SEND_PAUSE` | `0.05` | = vanilla | tecnico | Pausa en segundos entre mensajes seguidos del duelo |
 | `ocg.NPC_THINK` | `0.8` | = vanilla | ? | Segundos antes de cada jugada visible de la NPC |

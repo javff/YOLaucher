@@ -135,6 +135,11 @@ def duel_reply(c, msg_id, param, data):
     # primero de cada conexión arranca el duelo; si no, se reparten otra vez mazos y manos encima de la partida.
     srv.df_end_mark(c, DF, msg_id)            # B58: qué partida de duelfin es la de esta conexión
     if msg_id == 0x61fe:
+        _s = srv.ocg_session(c)
+        if _s is not None:                    # u8 = opción «Auto Card Placing» del cliente (1 = manual); también al cambiarla en pleno duelo
+            _s.place_manual = bool(data[:1] and data[0])
+            if getattr(_s, "d", None) is not None:
+                _s.d.place_manual = _s.place_manual
         if getattr(c, "duel_started", False):
             srv.log(f"[duelo] 0x61fe repetido ({data.hex()}): ignorado")
             return

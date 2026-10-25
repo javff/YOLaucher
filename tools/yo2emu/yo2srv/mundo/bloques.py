@@ -69,11 +69,26 @@ def block_others(c):
 def send_block_list(c):
     """0x4211 + 0x4212 (yo primero y luego los demás del bloque, 36 B cada uno, <= 28 por mensaje) + 0x4213. El
     valor de 0x4211 se queda en 1 como siempre (FUN_006b88d0 lo guarda en +0x7f4 y vacía la lista)."""
-    entries = [srv.block_player(srv.my_pid())] + [srv.HUB.list1_entry(o) for o in srv.block_others(c)]
+    hub = srv.HUB
+    entries = [srv.block_player(srv.my_pid())]
+    view = {}                                    # lo que esta LIST1 dice de cada uno, para corregirlo si cambia mientras sale
+    for o in srv.block_others(c):
+        view[o.pid] = hub.view_of(o) if hasattr(hub, "view_of") else None
+        entries.append(hub.list1_entry(o))
     c.send(0x4211, proto.W().u32(1).bytes())
     for i in range(0, len(entries), 28):
         c.send(0x4212, b"".join(entries[i:i + 28]))
     c.send(0x4213)
+    # 24-10 (research/lobby/NOTES.md §9c): la LIST1 se arma ANTES de mandarla (leer el perfil de cada uno del disco, bajo el
+    # candado del estado, y 0,25 s de pausa por mensaje) y mientras tanto los avisos de los demás (0x3112, por su cola) siguen
+    # saliendo. El cliente vacía su lista con 0x4211 y escribe lo que trae 0x4212: si el aviso de «ya está libre» llega antes
+    # que una LIST1 hecha cuando aún estaba «en duelo», el estado viejo gana y no hay «Retar» hasta salir y volver a entrar.
+    # Lo que cambió desde que se miró a cada uno se vuelve a mandar detrás.
+    s, key = getattr(c, "sess", None), srv.block_key(c)
+    if (hasattr(hub, "reconcile") and s is not None and key is not None and s.block == key and s.lobby is c
+            and None not in view.values()):                  # (las mismas condiciones que block_others)
+        for mid, data in hub.reconcile(s, view):
+            c.send(mid, data, pause=0.02)
 
 def block_player(pid, name=None, sess=None):
     """Entrada de 0x4212 BLOCKPLAYERLISTDATA (FUN_006b8b70), 36 B: u32 id, nombre16, u8, u16 x4, u8, cadena4, u8,

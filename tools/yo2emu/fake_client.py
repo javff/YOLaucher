@@ -576,11 +576,11 @@ def npc_deck_ids(nid):
     return list(d["main"]), list(d.get("extra") or [])
 
 
-def room_msg(rival=0xffffffff, dstyle=3):
+def room_msg(rival=0xffffffff, dstyle=3, tiempo=1):
     """0x4288 REQCREATEROOM, 28 B: u8 dstyle, u8 wmode, u8 mstat, u8 con contraseña, 16 B, 4×u8, u32 rival.
     El cliente real manda rival = 0xffffffff al abrir sala desde el Menú de Duelo (log 20261006-160049).
-    dstyle 4 = sala de match al mejor de 3 (log 20261009-120748, pvp-3)."""
-    return bytes([dstyle, 0, 0, 0]) + bytes(16) + bytes([1, 1, 1, 0]) + struct.pack(">I", rival)
+    dstyle 4 = sala de match al mejor de 3 (log 20261009-120748, pvp-3). tiempo = «Límite de Tiempo» ON/OFF (byte 22)."""
+    return bytes([dstyle, 0, 0, 0]) + bytes(16) + bytes([1, 1, tiempo, 0]) + struct.pack(">I", rival)
 
 
 def duel_link(cli, deck):
@@ -640,9 +640,9 @@ def auto_loop(link, start, out, surrender=False, timeout=300, tope=None):
     out.update(prompts=prompts, autos=autos, timeout=True)
 
 
-def pvp_open_room(owner, other, dstyle=3):
+def pvp_open_room(owner, other, dstyle=3, tiempo=1):
     nb, na = len(owner.room.msgs), len(other.room.msgs)
-    owner.room.send(0x4288, room_msg(dstyle=dstyle))
+    owner.room.send(0x4288, room_msg(dstyle=dstyle, tiempo=tiempo))
     ok = owner.room.wait(0x428a, start=nb) is not None
     ra = other.room.wait(0x3113, start=na, pred=lambda d: len(d) >= 12 and struct.unpack(">I", d[4:8])[0] == owner.pid)
     return ok, (struct.unpack(">I", ra[:4])[0] if ra else None)
@@ -912,6 +912,21 @@ def _fin(link, start):
     return struct.unpack(">II", d[8:16]) if d else None
 
 
+def _end_seq(link, start):
+    """Comandos del motor 0x05 (fin) y 0x23 (LP a 0) que llegan por 0x6202 desde start hasta el 0x4d, como
+    (cmd, bit 15 de B, P0, P1, P2). La rendición del oficial no lleva 0x23 y su 0x05 lleva el motivo 12."""
+    out = []
+    for m, _, d in link.msgs[start:]:
+        if m != 0x6202 or len(d) < 20:
+            continue
+        t, b = struct.unpack(">II", d[:8])
+        if t & 0xff == 0 and (b & 0x7fff) in (0x05, 0x23):
+            out.append((b & 0x7fff, b >> 15) + struct.unpack(">3I", d[8:20]))
+        if t & 0xff == 0x4d:
+            break
+    return out
+
+
 def _lose(res, A, B, loser, tag):
     """loser manda 0x7ffd (prueba: «pierdo esta partida») cuando su duelo ya ha empezado. Devuelve los (P0, P1) de
     0x4d de A y de B y los índices de sus colas antes del fin."""
@@ -951,7 +966,8 @@ def _next_game(res, A, B, chooser, v, tag):
 
 
 def run_pvpmatch(offset, host="127.0.0.1"):
-    """Match al mejor de 3 (pvp_match.PVP_MATCH, sala dstyle 4): 2-0, 2-1 y desconexión entre partidas."""
+    """Match al mejor de 3 (pvp_match.PVP_MATCH, sala dstyle 4): 2-0, 2-1, desconexión entre partidas y rendición
+    (en la partida 1 el match sigue; la que decide el marcador lo cierra)."""
     print(f"== PvP: match al mejor de 3 contra {host} (+{offset})")
     res = []
     okey = owner_key_from_log()
@@ -1033,6 +1049,89 @@ def run_pvpmatch(offset, host="127.0.0.1"):
     check(res, "corte: A recibe 0x4800 y el registro (0x6010)", 0x4800 in lobby_ids(A, la)
           and A.duel.wait(0x6010, start=na) is not None)
     A.duel.send(0x0003)
+    # 4) rendición DENTRO de un match (aviso de los jugadores «Surrendering in a Match results in losing the entire match
+    #    regardless if it's the first duel»). El oficial (C, duellogs de match de 2008-2009) la trataba como perder SOLO esa
+    #    partida: el match seguía si el marcador no lo decidía (pvp_match.SURRENDER_ENDS_MATCH = False). Se rinde con el menú
+    #    del mazo + SÍ, como el cliente real.
+    def rinde(X, Y, tag):
+        """X se rinde en la partida en curso. Devuelve ((P0, P1) del 0x4d de X, de Y, 0x05/0x23 de X, de Y)."""
+        nx, ny = X.mark, Y.mark
+        X.duel.wait(0x6202, start=nx, timeout=10)
+        pedido = False
+        t_ini = time.time()
+        while time.time() - t_ini < 5 and not pedido:        # su petición de jugada (si decide el otro, se rinde igual)
+            pedido = any(is_prompt(m, d) for m, _, d in X.duel.msgs[nx:])
+            time.sleep(0.05)
+        n_ = len(X.duel.msgs)
+        X.duel.send(0x6350, struct.pack(">4I", 0, 0xd, 0, 10))
+        dlg = X.duel.wait(0x6202, start=n_, timeout=5, pred=lambda d: _t6202(d)[0] == 0x1b and _t6202(d)[1] == 0x32)
+        check(res, f"{tag}: «Rendirse» abre el diálogo SÍ/NO", dlg is not None)
+        X.duel.send(0x6423, struct.pack(">I", 1))
+        fx, fy = _fin(X.duel, nx), _fin(Y.duel, ny)
+        check(res, f"{tag}: el otro recibe 0x649b (2, 1) «se ha rendido»", Y.duel.wait(0x649b, start=ny, timeout=3) == b"\2\1")
+        return fx, fy, _end_seq(X.duel, nx), _end_seq(Y.duel, ny)
+
+    def nombre(X):
+        return "A" if X is A else "B"
+
+    def fin_oficial(tag, ex, ey):
+        """El fin por rendición del oficial (51/51 duellogs): sin 0x23, 0x05 (2, 0, 12) al que se rinde y (1, 12, 0) al otro."""
+        check(res, f"{tag}: fin como el oficial (sin 0x23; 0x05 (2, 0, 12) al perdedor y (1, 12, 0) al ganador)",
+              ex == [(5, 0, 2, 0, 12)] and ey == [(5, 1, 1, 12, 0)], f"{ex} {ey}")
+
+    # 4a) rendición en la PARTIDA 1: pierde la partida y el match sigue (partida 2 jugable); 1-1; en la 3 se rinde otra vez
+    for X, Y in ((A, B), (B, A)):
+        qx, qy = nombre(X), nombre(Y)
+        tag = f"rendición p1 ({qx})"
+        la, lb = match(tag)
+        lx, ly = (la, lb) if X is A else (lb, la)
+        fx, fy, ex, ey = rinde(X, Y, tag)
+        check(res, f"{tag}: pierde {qx} (0x4d 2) y gana {qy} (0x4d 1) con P1 = 2 como el oficial: el match NO se cierra (P1 != 5)",
+              fx == (2, 2) and fy == (1, 2), f"{fx} {fy}")
+        fin_oficial(tag, ex, ey)
+        sc = Y.duel.all(0x6613, Y.mark)
+        check(res, f"{tag}: DUELSCORE de {qy} = 1-0", sc and struct.unpack(">2I", sc[-1][:8]) == (1, 0), sc[-1][:8].hex() if sc else "nada")
+        time.sleep(0.8)
+        check(res, f"{tag}: sin 0x4800 ni registro (0x6010) entre partidas",
+              0x4800 not in lobby_ids(X, lx) + lobby_ids(Y, ly) and not X.duel.all(0x6010, X.mark) and not Y.duel.all(0x6010, Y.mark))
+        # partida 2: elige quién empieza el que se rindió y se juega (el otro "pierde" con 0x7ffd): 1-1
+        _next_game(res, A, B, qx, 0, tag + " p2")
+        fa, fb, na, nb = _lose(res, A, B, qy, tag + " p2")
+        fxy = (fa, fb) if X is A else (fb, fa)
+        check(res, f"{tag} p2: se juega y gana {qx} (P1 = 0): 1-1, el match sigue", fxy == ((1, 0), (2, 0)), f"{fxy}")
+        time.sleep(0.5)
+        check(res, f"{tag} p2: todavía sin 0x4800", 0x4800 not in lobby_ids(X, lx) + lobby_ids(Y, ly))
+        # partida 3: elige el que perdió la 2 (qy); se rinde X otra vez: gana qy el match 2-1
+        _next_game(res, A, B, qy, 0, tag + " p3")
+        fx, fy, ex, ey = rinde(X, Y, tag + " p3")
+        check(res, f"{tag} p3: se rinde {qx} otra vez: 0x4d (2, 2) / (1, 2)", fx == (2, 2) and fy == (1, 2), f"{fx} {fy}")
+        fin_oficial(tag + " p3", ex, ey)
+        sc = Y.duel.all(0x6613, Y.mark)
+        check(res, f"{tag} p3: DUELSCORE final de {qy} = 2-1", sc and struct.unpack(">2I", sc[-1][:8]) == (2, 1), sc[-1][:8].hex() if sc else "nada")
+        time.sleep(1.0)
+        check(res, f"{tag} p3: 0x4800 a los dos una vez, al acabar el match",
+              lobby_ids(X, lx).count(0x4800) == 1 and lobby_ids(Y, ly).count(0x4800) == 1)
+        check(res, f"{tag} p3: registro (0x6010) a los dos al acabar", X.duel.wait(0x6010, start=X.mark) is not None
+              and Y.duel.wait(0x6010, start=Y.mark) is not None)
+        for Z in (A, B):
+            Z.duel.send(0x0003)
+    # 4b) rendición en la partida 2 que DECIDE el match (el que se rinde ya había perdido la 1: 0-2)
+    for X, Y in ((A, B), (B, A)):
+        qx, qy = nombre(X), nombre(Y)
+        tag = f"rendición p2 (0-1 y {qx} se rinde)"
+        la, lb = match(tag)
+        lx, ly = (la, lb) if X is A else (lb, la)
+        _lose(res, A, B, qx, tag + " p1")
+        _next_game(res, A, B, qx, 0, tag)
+        fx, fy, ex, ey = rinde(X, Y, tag)
+        check(res, f"{tag}: 0x4d (2, 2) / (1, 2) y el marcador (2 victorias de {qy}) cierra el match", fx == (2, 2) and fy == (1, 2), f"{fx} {fy}")
+        fin_oficial(tag, ex, ey)
+        sc = Y.duel.all(0x6613, Y.mark)
+        check(res, f"{tag}: DUELSCORE final de {qy} = 2-0", sc and struct.unpack(">2I", sc[-1][:8]) == (2, 0), sc[-1][:8].hex() if sc else "nada")
+        time.sleep(1.0)
+        check(res, f"{tag}: 0x4800 a los dos una vez", lobby_ids(X, lx).count(0x4800) == 1 and lobby_ids(Y, ly).count(0x4800) == 1)
+        for Z in (A, B):
+            Z.duel.send(0x0003)
     errs = A.errors + B.errors
     check(res, "match: numeración sin desfases", not errs, "; ".join(errs[:4]))
     for X in (A, B):
@@ -2205,6 +2304,7 @@ if __name__ == "__main__":
     if a.modo == "kill":                      # B25: node muerto a mitad de un duelo PvP y de NPC (instancia propia)
         sys.exit(0 if run_pvp_prueba(a.offset, run_kill) else 1)
     if a.modo == "pvpmatch":                  # 10-10: match al mejor de 3 (pvp_match.PVP_MATCH), instancia propia
+        os.environ.setdefault("YO2_DP_INICIO", "30")   # cada partida cuesta 1 DP y retar exige 3: con 8 no llegan los 4 matches
         sys.exit(0 if run_pvp_prueba(a.offset, run_pvpmatch) else 1)
     if a.modo == "salas":                     # 10-10: salas por idioma 1:1 (YO2_ROOM_PER_LANG=1), instancia propia
         os.environ["YO2_ROOM_PER_LANG"] = "1"

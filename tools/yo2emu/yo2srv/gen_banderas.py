@@ -27,6 +27,9 @@ NO_REGISTRADAS = (
     ("Aviso «Mover» (texto 5092)", "lado del cliente (Frida): `launcher/aviso_sala_hook.js` y copia en `net_hook.js` "
      "(research/lobby/NOTES.md «Aviso al pulsar MOVE con sala abierta»)",
      "APAGADO en vanilla: solo con el fichero `yo2-aviso-sala.txt` junto a yo2.exe o `YO2_AVISO_SALA=1`"),
+    ("Tamaño de ventana del cliente (Ajustes → Display → «Window size»)", "lado del cliente (DLL propia): `launcher/juego/dll/yo2net.c` (ventana ampliada, "
+     "cuentas en `yo2win.h`), valor en `lanzador.json` («ventana») y `YO2ONLINE_WINDOW` (rama rx/PAN)",
+     "APAGADO en vanilla: «Original (1024x768)»; 1.5x / 2x / «Fit screen» solo si el jugador lo elige en el lanzador"),
     ("«Mirar» un duelo contra una NPC", "`npc_watch.py` (research/lobby/NOTES.md «C2»): cuelga de `hub.NPC_DUEL_STATE` y "
      "`lobby.WATCH`, sin bandera propia", "ENCENDIDO en vanilla mientras esas dos lo estén"),
     ("Torpeza de la IA de las NPC", "`research/ia/brain.py` (`NpcProfile.torpeza`, por nivel de la NPC; research/ia/BRAIN.md): "

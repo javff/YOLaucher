@@ -112,6 +112,20 @@ function pintaTema() {
   $('#aTemaTxt').textContent = t('set.theme_hint');
   $$('#aTema [data-tema]').forEach(b => { const on = b.dataset.tema === v; b.setAttribute('aria-checked', String(on)); b.classList.toggle('on', on); });
 }
+// ------------------------------------------------------------------ tamano de la ventana del juego (Ajustes > Display)
+function pintaVentana() {
+  const v = (S.ajustes && S.ajustes.ventana) || '';
+  $$('#aVentana [data-vent]').forEach(b => {
+    b.textContent = t({ '': 'set.win_orig', '1.5': 'set.win_x15', '2': 'set.win_x2', fit: 'set.win_fit' }[b.dataset.vent]);
+    const on = b.dataset.vent === v; b.setAttribute('aria-checked', String(on)); b.classList.toggle('on', on);
+  });
+  $('#aVentanaTxt').textContent = t(v === '' ? 'set.win_hint' : v === 'fit' ? 'set.win_hint_fit' : 'set.win_hint_zoom');
+}
+$$('#aVentana [data-vent]').forEach(b => b.addEventListener('click', async () => {
+  try { await call('PonerVentana', b.dataset.vent); S.ajustes = await call('Ajustes'); } catch (x) { toast(msg(x), 'mal'); }
+  pintaVentana();
+}));
+
 $$('#aTema [data-tema]').forEach(b => b.addEventListener('click', async () => {
   TEMA.aplicar(b.dataset.tema); // al instante; después se guarda en los ajustes
   pintaTema();
@@ -1252,6 +1266,7 @@ function pintaAjustes() {
   else if (e.VersionJuego && e.VersionJuego !== VER_JUEGO) pon('aviso', 'i-alert', t('set.game_other_ver', { v: e.VersionJuego, esperada: VER_JUEGO }));
   else pon('ok', 'i-check', t('set.game_found') + (e.VersionJuego ? ' · Ver.' + e.VersionJuego : ''));
   pintaTema();
+  pintaVentana();
   ponTog('#aAct', a.actualizar);
   ponTog('#aOcultos', a.mostrar_ocultos);
   const n = (a.ocultos || []).length;
