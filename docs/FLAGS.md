@@ -174,6 +174,12 @@ implementation (`/gestion/torneo`). Codes are generated using the same
 `research/persistencia/duelpass.py` store as the game and every mutating
 operation is written to the admin audit log.
 
+Starting, announcing, pausing, resuming and ending an event are runtime
+operations and do not require restarting `run.py`. Startup switches such as
+`YO2_TOURNAMENT`, `YO2_EVENTS`, `YO2_AUTO_CLOCK` and `YO2_DPAUTH` are read
+when the server starts; changing those switches requires stopping and
+starting the server.
+
 ### Teams (`equipos`)
 
 | id | vanilla | enhanced | origin | desc |

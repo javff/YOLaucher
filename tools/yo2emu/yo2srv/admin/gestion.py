@@ -347,12 +347,19 @@ def torneo_opciones():
 def torneo_estado():
     tmod = _torneos()
     t = tmod.TOUR
+    evento = None
+    if tmod.CURRENT_EVENT is not None:
+        serial, world, state = tmod.CURRENT_EVENT
+        if int(state) % 2:
+            evento = {"serial": int(serial), "world": int(world), "estado": int(state),
+                      "nombre": str(tmod.EVENT_NAMES.get(state, "EVENT"))}
     if t is None:
-        return {"activo": False, "estado": "sin_torneo", "config": {
+        return {"activo": False, "estado": -1, "evento": evento, "pausado": False, "config": {
             "torneos": bool(tmod.TOURNAMENT_ON), "eventos": bool(tmod.EVENTS_ON),
             "reloj": bool(tmod.AUTO_CLOCK)}}
     return {"activo": True, "serial": t.serial, "dia": t.day, "nombre": t.name, "max_jugadores": t.max_players,
-            "estado": int(t.state), "fase": int(t.phase), "ronda": int(t.round),
+            "estado": int(t.state), "evento": evento, "pausado": bool(getattr(tmod, "PAUSED", False)),
+            "fase": int(t.phase), "ronda": int(t.round),
             "inscritos": len(t.seats), "vivos": len(t.alive()), "espectadores": t.audience(),
             "segundos": t.seconds_left(), "campeon": t.champion, "subcampeon": t.runner_up}
 
@@ -379,6 +386,14 @@ def a_torneo(a):
         tmod.push_event(tmod.EV_CHAMPIONSHIP_OFF)
     elif accion == "tick":
         tmod.tick()
+    elif accion == "pausar":
+        tmod.pause_tournament()
+    elif accion == "reanudar":
+        tmod.resume_tournament()
+    elif accion == "finalizar":
+        tmod.finish_tournament()
+        if tmod.CURRENT_EVENT is not None:
+            tmod.push_event(int(tmod.CURRENT_EVENT[2]) + 1)
     elif accion != "estado":
         raise MOD.ApiError("acción de torneo desconocida", clave="torneo_entrada")
     return {"ok": True, "torneo": torneo_estado()}, "torneo", accion

@@ -358,6 +358,13 @@ type EventoTorneoG struct {
 	Cuadro bool   `json:"cuadro"`
 }
 
+type EventoActivoG struct {
+	Serial int    `json:"serial"`
+	World  int    `json:"world"`
+	Estado int    `json:"estado"`
+	Nombre string `json:"nombre"`
+}
+
 type RegalosG struct {
 	MP   int    `json:"mp"`
 	DPP  int    `json:"dpp"`
@@ -365,20 +372,22 @@ type RegalosG struct {
 }
 
 type TorneoG struct {
-	Activo       bool   `json:"activo"`
-	Serial       int    `json:"serial"`
-	Dia          int    `json:"dia"`
-	Nombre       string `json:"nombre"`
-	MaxJugadores int    `json:"max_jugadores"`
-	Estado       string `json:"estado"`
-	Fase         int    `json:"fase"`
-	Ronda        int    `json:"ronda"`
-	Inscritos    int    `json:"inscritos"`
-	Vivos        int    `json:"vivos"`
-	Espectadores int    `json:"espectadores"`
-	Segundos     int    `json:"segundos"`
-	Campeon      any    `json:"campeon"`
-	Subcampeon   any    `json:"subcampeon"`
+	Activo       bool           `json:"activo"`
+	Serial       int            `json:"serial"`
+	Dia          int            `json:"dia"`
+	Nombre       string         `json:"nombre"`
+	MaxJugadores int            `json:"max_jugadores"`
+	Estado       int            `json:"estado"` // -1 = sin cuadro
+	Evento       *EventoActivoG `json:"evento"`
+	Pausado      bool           `json:"pausado"`
+	Fase         int            `json:"fase"`
+	Ronda        int            `json:"ronda"`
+	Inscritos    int            `json:"inscritos"`
+	Vivos        int            `json:"vivos"`
+	Espectadores int            `json:"espectadores"`
+	Segundos     int            `json:"segundos"`
+	Campeon      any            `json:"campeon"`
+	Subcampeon   any            `json:"subcampeon"`
 }
 
 // oMenos1: un número que puede venir como null (o no venir: run.py anterior) -> -1.

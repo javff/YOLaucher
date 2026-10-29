@@ -1315,11 +1315,31 @@ function pintaTorneo() {
     $('#gtEvento').replaceChildren(...G.eventos.map(x => el('option', { value: String(x.evento), text: x.nombre + (x.cuadro ? ' · bracket' : ' · event') })));
     if ([...$('#gtEvento').options].some(x => x.value === old)) $('#gtEvento').value = old;
   }
+  actualizaTorneoForm();
   $('#gtTit').textContent = t0 ? (t0.activo ? t('mg.tournament_status') : t('mg.tournament_none')) : t('mg.loading');
   $('#gtLista').replaceChildren(t0 ? el('div', { class: 'gnota', text: t0.activo
     ? `Name: ${t0.nombre} · Phase ${t0.fase} · Round ${t0.ronda} · ${t0.vivos}/${t0.inscritos} alive · ${t0.segundos}s`
     : 'Registration is closed.' }) : null);
+  $('#gtEventoEstado').textContent = t0 && t0.evento
+    ? `Active event: ${t0.evento.nombre}${t0.pausado ? ' · PAUSED' : ''}`
+    : 'No active event.';
 }
+function actualizaTorneoForm() {
+  const selected = G.eventos && G.eventos.find(x => String(x.evento) === $('#gtEvento').value);
+  const bracket = !!(selected && selected.cuadro);
+  for (const id of ['#gtNombre', '#gtDia', '#gtMax']) $(id).disabled = !bracket;
+  for (const id of ['#gtNombreBox', '#gtDiaBox', '#gtMaxBox']) $(id).hidden = !bracket;
+  const active = !!(G.torneo && (G.torneo.activo || G.torneo.evento));
+  $('#gtTick').disabled = !bracket || !active || !!G.torneo.pausado;
+  $('#gtPausar').disabled = !bracket || !G.torneo || !G.torneo.activo;
+  $('#gtFinalizar').disabled = !active;
+  $('#gtPausar').textContent = G.torneo && G.torneo.pausado ? 'Resume bracket' : 'Pause bracket';
+  $('#gtEventoTipo').textContent = bracket
+    ? 'Championship opens a playable direct-elimination bracket.'
+    : 'This event only sends an announcement to the game client; it has no playable bracket in this server.';
+  $('#gtIniciar').textContent = bracket ? 'Start Championship registration' : 'Start selected event';
+}
+$('#gtEvento').addEventListener('change', actualizaTorneoForm);
 async function accionTorneo(accion) {
   const r = await call('GestionAccionTorneo', accion, $('#gtNombre').value.trim(),
     Number($('#gtEvento').value) || 11, 1, Number($('#gtDia').value) || 1, Number($('#gtMax').value) || 8);
@@ -1328,6 +1348,9 @@ async function accionTorneo(accion) {
 $('#gtIniciar').onclick = () => gHacer(() => accionTorneo('iniciar'), t('mg.tournament_started'));
 $('#gtAnunciar').onclick = () => gHacer(() => accionTorneo('evento_on'), t('mg.tournament_event'));
 $('#gtTick').onclick = () => gHacer(() => accionTorneo('tick'), t('mg.tournament_advanced'));
+$('#gtPausar').onclick = () => gHacer(() => accionTorneo(G.torneo && G.torneo.pausado ? 'reanudar' : 'pausar'),
+  G.torneo && G.torneo.pausado ? 'Bracket resumed.' : 'Bracket paused.');
+$('#gtFinalizar').onclick = () => gHacer(() => accionTorneo('finalizar'), 'Event ended.');
 
 // ------------------------------------------------------------------ NOVEDADES
 // novedades.json: [{fecha: 'AAAA-MM-DD', titulo, puntos: [...]}]
