@@ -571,7 +571,7 @@
   "mg.tournament_status": "CHAMPIONSHIP is running",
   "mg.tournament_none": "No tournament is currently open.",
   "mg.tournament_started": "Tournament registration opened.",
-  "mg.tournament_event": "CHAMPIONSHIP event announced.",
+  "mg.tournament_event": "Active event reannounced.",
   "mg.tournament_advanced": "Tournament advanced.",
   "msg.gestion.sin_servidor": "Your server isn't running.",
   "msg.gestion.sin_token": "This server doesn't offer the Manage tab yet: it is running older server files. Stop it and start it again.",

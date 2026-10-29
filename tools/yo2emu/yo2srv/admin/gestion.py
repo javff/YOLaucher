@@ -376,14 +376,16 @@ def a_torneo(a):
         else:
             nombre = _texto(a, "nombre", 100)
             serial, dia, maxp = _entero(a, "serial", 1, 0xffffffff, 1), _entero(a, "dia", 1, 0x11, 1), _entero(a, "max_jugadores", 2, 8, 8)
+            tmod.push_event(tmod.EV_CHAMPIONSHIP_ON, serial=serial)
             tmod.start_tournament(serial=serial, day=dia, name=nombre, max_players=maxp)
     elif accion == "evento_on":
-        evento = _entero(a, "evento", 1, 0x100, tmod.EV_CHAMPIONSHIP_ON)
-        if evento not in tmod.EVENT_NAMES or evento % 2 == 0:
-            raise MOD.ApiError("evento no soportado", clave="torneo_entrada")
-        tmod.push_event(evento)
+        if tmod.CURRENT_EVENT is None or int(tmod.CURRENT_EVENT[2]) % 2 == 0:
+            raise MOD.ApiError("no hay evento activo para anunciar", clave="torneo_entrada")
+        tmod.push_event()
     elif accion == "evento_off":
-        tmod.push_event(tmod.EV_CHAMPIONSHIP_OFF)
+        if tmod.CURRENT_EVENT is None or int(tmod.CURRENT_EVENT[2]) % 2 == 0:
+            raise MOD.ApiError("no hay evento activo para finalizar", clave="torneo_entrada")
+        tmod.push_event(int(tmod.CURRENT_EVENT[2]) + 1)
     elif accion == "tick":
         tmod.tick()
     elif accion == "pausar":

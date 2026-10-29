@@ -1333,6 +1333,7 @@ function actualizaTorneoForm() {
   $('#gtTick').disabled = !bracket || !active || !!G.torneo.pausado;
   $('#gtPausar').disabled = !bracket || !G.torneo || !G.torneo.activo;
   $('#gtFinalizar').disabled = !active;
+  $('#gtAnunciar').disabled = !(G.torneo && G.torneo.evento);
   $('#gtPausar').textContent = G.torneo && G.torneo.pausado ? 'Resume bracket' : 'Pause bracket';
   $('#gtEventoTipo').textContent = bracket
     ? 'Championship opens a playable direct-elimination bracket.'
