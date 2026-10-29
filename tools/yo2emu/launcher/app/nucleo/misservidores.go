@@ -22,6 +22,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"net"
 	"os"
@@ -515,6 +516,9 @@ func (n *Nucleo) arrancarGuardado(id string, clave *sala.ClaveServidor) error {
 		if pq == nil {
 			o.Env = append(o.Env, "YO2_STATE="+filepath.Join(o.DirDatos, "state.json"), "YO2_LOGDIR="+logsRunPy)
 		}
+		if err := escribirRegalosInicio(o.DirDatos, f.RegalosInicio); err != nil {
+			return errGen(err)
+		}
 	}
 	o.RunPy = runpy
 	pq.Ajustar(&o, n.cfg.Datos) // P5: nil = nada (desarrollo)
@@ -557,4 +561,23 @@ func (n *Nucleo) arrancarGuardado(id string, clave *sala.ClaveServidor) error {
 		}
 	}()
 	return nil
+}
+
+func escribirRegalosInicio(dir string, r RegalosInicio) error {
+	if r.MP == 0 && r.DPP == 0 && (r.Baul == "" || r.Baul == "empty") {
+		// El fichero es opcional: eliminarlo conserva exactamente el comportamiento
+		// histórico y evita dejar configuración obsoleta en servidores antiguos.
+		_ = os.Remove(filepath.Join(dir, "admin_regalos.json"))
+		return nil
+	}
+	b, err := json.MarshalIndent(map[string]any{"mp": r.MP, "dpp": r.DPP, "baul": r.Baul}, "", "  ")
+	if err != nil {
+		return err
+	}
+	p := filepath.Join(dir, "admin_regalos.json")
+	tmp := p + ".tmp"
+	if err := os.WriteFile(tmp, append(b, '\n'), 0o600); err != nil {
+		return err
+	}
+	return os.Rename(tmp, p)
 }

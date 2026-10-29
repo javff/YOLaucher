@@ -189,6 +189,19 @@
               <div class="fila-tog"><button class="tog" id="sGratis" role="switch" aria-checked="false" aria-labelledby="sGratisLbl" aria-describedby="sGratisAyuda"></button>
                 <div><span class="lbl" id="sGratisLbl">Free duels (no Duelpass cost)</span>
                   <small class="nota-campo" id="sGratisAyuda">Not in the original game. Duels don't spend points, and every new character gets the starting points.</small></div></div>
+              <details class="opciones-admin"><summary>Server options</summary>
+                <div class="dos-c">
+                  <label class="fila-tog"><button class="tog" id="sTorneos" role="switch" aria-checked="true"></button><span class="lbl">Enable CHAMPIONSHIP tournaments</span></label>
+                  <label class="fila-tog"><button class="tog" id="sEventos" role="switch" aria-checked="true"></button><span class="lbl">Announce map events</span></label>
+                  <label class="fila-tog"><button class="tog" id="sRelojTorneo" role="switch" aria-checked="true"></button><span class="lbl">Automatic tournament clock</span></label>
+                  <label class="fila-tog"><button class="tog" id="sDuelpassAuth" role="switch" aria-checked="true"></button><span class="lbl">Validate DUELPASS codes</span></label>
+                </div>
+                <div class="dos-c">
+                  <div><label class="lbl" for="sRegaloMP">Starting MP gift</label><select class="campo" id="sRegaloMP"><option value="0">No override</option><option value="1000">1,000</option><option value="5000">5,000</option><option value="10000">10,000 (original)</option><option value="50000">50,000</option><option value="100000">100,000</option></select></div>
+                  <div><label class="lbl" for="sRegaloDPP">Starting DPP gift</label><select class="campo" id="sRegaloDPP"><option value="0">No override</option><option value="10">10 (original)</option><option value="100">100</option><option value="500">500</option><option value="1000">1,000</option><option value="1000000">1,000,000</option></select></div>
+                  <div><label class="lbl" for="sBaul">Starting card trunk</label><select class="campo" id="sBaul"><option value="empty">Empty</option><option value="deck">Starter deck</option><option value="all3">All starter decks</option></select></div>
+                </div>
+              </details>
               <div class="err" id="sErr" hidden></div>
             </div>
             <div class="form-pie"><span class="sp"></span><button class="b claro mini" id="fCancelar">Cancel</button>
@@ -207,6 +220,8 @@
                 <button class="chip" data-s="cuentas" role="tab" aria-pressed="false"><svg class="i"><use href="#i-key"/></svg>Accounts</button>
                 <button class="chip" data-s="aviso" role="tab" aria-pressed="false"><svg class="i"><use href="#i-news"/></svg>Announcement</button>
                 <button class="chip" data-s="copias" role="tab" aria-pressed="false"><svg class="i"><use href="#i-folder"/></svg>Backup</button>
+                <button class="chip" data-s="duelpass" role="tab" aria-pressed="false"><svg class="i"><use href="#i-cards"/></svg>DUELPASS</button>
+                <button class="chip" data-s="torneos" role="tab" aria-pressed="false"><svg class="i"><use href="#i-cup"/></svg>Tournaments</button>
               </div>
               <div class="gmain">
                 <div class="err" id="gErr" hidden></div>
@@ -240,6 +255,35 @@
                     <button class="b oro mini" id="gbCopia"><svg class="i"><use href="#i-folder"/></svg>Save a backup now</button></div>
                   <div class="gtit" id="gbTit"></div>
                   <div class="glista" id="gbLista"></div>
+                </section>
+                <section class="gsec" id="g-duelpass" role="tabpanel">
+                  <div class="gform">
+                    <label><span class="lbl">Code quantity</span><input class="campo" id="gdN" type="number" min="1" max="10000" value="1"></label>
+                    <label><span class="lbl">DP reward</span><input class="campo" id="gdDPP" type="number" min="0" max="255" value="0"></label>
+                    <label><span class="lbl">Card reward</span><select class="campo" id="gdCarta"><option value="0">No card reward</option></select></label>
+                    <label><span class="lbl">Starter deck reward</span><select class="campo" id="gdMazo"><option value="0">No starter deck reward</option></select></label>
+                    <label><span class="lbl">Internal note</span><input class="campo" id="gdNota" maxlength="80" placeholder="Optional"></label>
+                    <button class="b oro mini" id="gdCrear">Create codes</button>
+                  </div>
+                  <div class="gform">
+                    <label><span class="lbl">MPP for new characters</span><select class="campo" id="gdInicioMP"><option value="0">Use server default</option><option value="1000">1,000</option><option value="5000">5,000</option><option value="10000">10,000</option><option value="50000">50,000</option><option value="100000">100,000</option></select></label>
+                    <label><span class="lbl">DP for new characters</span><select class="campo" id="gdInicioDPP"><option value="0">Use server default</option><option value="10">10</option><option value="100">100</option><option value="500">500</option><option value="1000">1,000</option><option value="1000000">1,000,000</option></select></label>
+                    <label><span class="lbl">Default card trunk</span><select class="campo" id="gdInicioBaul"><option value="empty">Empty trunk</option><option value="deck">Starter deck</option><option value="all3">All starter decks</option></select></label>
+                    <button class="b claro mini" id="gdGuardarInicio">Save starting gifts</button>
+                  </div>
+                  <div class="gtit" id="gdTit"></div><div class="glista" id="gdLista"></div>
+                </section>
+                <section class="gsec" id="g-torneos" role="tabpanel">
+                  <div class="gform">
+                    <select class="campo" id="gtEvento"><option value="">Loading supported events…</option></select>
+                    <input class="campo" id="gtNombre" maxlength="100" value="CHAMPIONSHIP" placeholder="Tournament name">
+                    <input class="campo" id="gtDia" type="number" min="1" max="17" value="1" placeholder="Day">
+                    <input class="campo" id="gtMax" type="number" min="2" max="8" value="8" placeholder="Players">
+                    <button class="b oro mini" id="gtIniciar">Start selected event</button>
+                    <button class="b claro mini" id="gtAnunciar">Announce selected event</button>
+                    <button class="b claro mini" id="gtTick">Advance</button>
+                  </div>
+                  <div class="gtit" id="gtTit"></div><div class="glista" id="gtLista"></div>
                 </section>
               </div>
             </div>
@@ -402,8 +446,8 @@
         <button class="b claro mini" data-modo="poner" role="radio" aria-checked="true">Set to</button>
         <button class="b claro mini" data-modo="sumar" role="radio" aria-checked="false">Add</button></div>
       <div class="dos-c" style="margin-top:8px">
-        <div><label class="lbl" for="dDP">Duelpass points (DP)</label><input class="campo" id="dDP" type="number" step="1" inputmode="numeric" autocomplete="off"></div>
-        <div><label class="lbl" for="dMP">MP</label><input class="campo" id="dMP" type="number" step="1" inputmode="numeric" autocomplete="off"></div></div>
+        <div><label class="lbl" for="dDP">Duelpass points (DP)</label><input class="campo" id="dDP" type="number" step="1" inputmode="numeric" autocomplete="off" placeholder="DP"></div>
+        <div><label class="lbl" for="dMP">MP</label><input class="campo" id="dMP" type="number" step="1" inputmode="numeric" autocomplete="off" placeholder="MPP"></div></div>
       <div class="err" id="dErr" hidden></div></div>
     <div class="pie"><button class="b claro mini" id="dNo">Cancel</button><button class="b oro mini" id="dSi">Save</button></div>
   </div></div>
