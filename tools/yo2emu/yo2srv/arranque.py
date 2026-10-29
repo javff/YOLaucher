@@ -473,3 +473,5 @@ def escuchar(servidor):
             + (f", salas de idioma {g['ROOM_LANG_PORT_BASE']}-{max(g['HANDLERS'])}" if g.get("ROOM_PER_LANG") else "")
             + f", {g['DUEL_PORT']}, HTTP {g['HTTP_PORT']}); consola 127.0.0.1:{g['ADMIN_PORT']}; "
             f"state {g['STATE_PATH']}")
+    # run_forever, al cumplir DEADLINE, sale del proceso: si no, los accept() de arriba cuelgan el apagado.
+    g["_SALIDA_PROCESO"] = True

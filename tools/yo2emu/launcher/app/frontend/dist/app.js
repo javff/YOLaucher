@@ -1321,34 +1321,72 @@ function pintaTorneo() {
   actualizaTorneoForm();
   $('#gtTit').textContent = t0 ? (t0.activo ? t('mg.tournament_status') : t('mg.tournament_none')) : t('mg.loading');
   const progress = t0 && t0.sesion && t0.sesion.progreso ? Object.entries(t0.sesion.progreso) : [];
+  const family = t0 && t0.sesion ? t0.sesion.familia : '';
   $('#gtLista').replaceChildren(
-    t0 ? el('div', { class: 'gnota', text: t0.activo
-      ? `Name: ${t0.nombre} · Phase ${t0.fase} · Round ${t0.ronda} · ${t0.vivos}/${t0.inscritos} alive · ${t0.segundos}s`
-      : 'No Championship bracket is open.' }) : null,
-    ...progress.map(([name, p]) => el('div', { class: 'gnota',
-      text: `${name} · wins ${p.victorias || 0} · streak ${p.racha || 0} · stars ${p.estrellas || 0} · pending rewards ${p.pendientes || 0}` })));
+    t0 && t0.activo ? el('div', { class: 'gnota', text:
+      `${t0.nombre} · phase ${t0.fase} · round ${t0.ronda} · ${t0.vivos}/${t0.inscritos} alive · ${t0.segundos}s` }) : null,
+    ...progress.map(([name, p]) => el('div', { class: 'gnota torneo-progreso' },
+      el('b', { text: name }),
+      el('span', { text: `${resumenProgreso(family, p)} · ${p.pendientes || 0} pending` }))));
   const sessionLive = !!(t0 && t0.sesion && ['activo', 'pausado'].includes(t0.sesion.estado));
   $('#gtEventoEstado').textContent = t0 && (t0.evento || sessionLive)
     ? `Active event: ${t0.evento ? t0.evento.nombre : t0.sesion.familia} · edition ${t0.sesion ? t0.sesion.serial : t0.evento.serial}${t0.pausado ? ' · PAUSED' : ''}`
     : 'No active event.';
 }
-function pintaPremios(selected) {
-  const box = $('#gtPremios');
-  if (!selected || box.dataset.familia === selected.familia) return;
-  box.dataset.familia = selected.familia;
-  const cards = G.cartas || [];
-  box.replaceChildren(el('div', { class: 'gform-help', text: selected.confirmado
-    ? 'Reward cards are delivered only after reaching each original YO2 condition.'
-    : 'Historical rule not confirmed for YO2 Ver.080912. This event cannot start.' }));
-  for (const milestone of selected.milestones || []) {
-    const sel = el('select', { class: 'campo gtPremio' },
-      el('option', { value: '0', text: 'No card reward' }),
-      ...cards.map(c => el('option', { value: String(c.id), text: `${c.id} · ${c.nombre || 'Card'}` })));
-    sel.dataset.milestone = String(milestone);
-    sel.value = String((selected.recompensas || {})[String(milestone)] || 0);
-    sel.disabled = !selected.confirmado;
-    box.append(el('label', {}, el('span', { class: 'lbl', text: `Condition: ${milestone}` }), sel));
+function resumenProgreso(family, p) {
+  if (family === 'gunslinger') return `streak ${p.racha || 0}`;
+  if (family === 'evolution' || family === 'ultimate') return `${p.estrellas || 0} stars`;
+  if (family === 'championship') return 'classification';
+  return `${p.victorias || 0} wins`;
+}
+function cartaPremioNombre(id) {
+  if (!Number(id)) return 'No card';
+  const c = (G.cartas || []).find(x => String(x.id) === String(id));
+  return c ? `${c.id} · ${c.nombre || 'Card'}` : `Card ${id}`;
+}
+function etiquetaCondicion(selected, milestone) {
+  const m = String(milestone);
+  if (selected.contador === 'racha') return `${m}-win streak`;
+  if (selected.contador === 'estrellas') return `${m} stars`;
+  if (m === 'campeon') return 'Champion';
+  if (m === 'subcampeon') return 'Runner-up';
+  return `${m} wins`;
+}
+function aseguraCatalogoPremio() {
+  const sel = $('#gtCartaPremio');
+  if (!sel || sel.dataset.ready === '1' || !(G.cartas || []).length) return;
+  const current = document.querySelector('#gtPremios .torneo-condicion.on');
+  sel.replaceChildren(el('option', { value: '0', text: 'No card reward' }),
+    ...G.cartas.map(c => el('option', { value: String(c.id), text: `${c.id} · ${c.nombre || 'Card'}` })));
+  sel.dataset.ready = '1';
+  for (const b of document.querySelectorAll('#gtPremios .torneo-condicion')) {
+    b.querySelector('small').textContent = cartaPremioNombre(b.dataset.card);
   }
+  if (current && [...sel.options].some(o => o.value === current.dataset.card)) sel.value = current.dataset.card;
+}
+function seleccionaCondicion(b) {
+  for (const x of document.querySelectorAll('#gtPremios .torneo-condicion')) x.classList.toggle('on', x === b);
+  const sel = $('#gtCartaPremio');
+  if ([...sel.options].some(o => o.value === b.dataset.card)) sel.value = b.dataset.card;
+}
+function pintaPremios(selected) {
+  aseguraCatalogoPremio();
+  const box = $('#gtPremios');
+  if (!selected) { box.replaceChildren(); box.dataset.familia = ''; return; }
+  if (box.dataset.familia === selected.familia && box.childElementCount) return;
+  box.dataset.familia = selected.familia;
+  box.replaceChildren(...(selected.milestones || []).map((milestone, i) => {
+    const card = String((selected.recompensas || {})[String(milestone)] || 0);
+    const b = el('button', { type: 'button', class: 'torneo-condicion' + (i ? '' : ' on') },
+      el('span', { text: etiquetaCondicion(selected, milestone) }),
+      el('small', { text: cartaPremioNombre(card) }));
+    b.dataset.milestone = String(milestone);
+    b.dataset.card = card;
+    b.onclick = () => seleccionaCondicion(b);
+    return b;
+  }));
+  const first = box.querySelector('.torneo-condicion');
+  if (first) seleccionaCondicion(first);
 }
 function actualizaTorneoForm() {
   const selected = G.eventos && G.eventos.find(x => String(x.evento) === $('#gtEvento').value);
@@ -1363,7 +1401,11 @@ function actualizaTorneoForm() {
   $('#gtFinalizar').disabled = !active;
   $('#gtAnunciar').disabled = !(G.torneo && G.torneo.evento);
   $('#gtGuardarPremios').disabled = !(selected && selected.confirmado);
+  $('#gtCartaPremio').disabled = !(selected && selected.confirmado);
   $('#gtIniciar').disabled = !(selected && selected.confirmado && selected.activo);
+  $('#gtPremioAyuda').textContent = !selected ? 'Select a condition, then choose its card.'
+    : selected.confirmado ? 'Select a condition, choose one valid card, then save the set.'
+    : 'This YO2 rule is not confirmed, so its rewards stay locked.';
   $('#gtPausar').textContent = G.torneo && G.torneo.pausado ? 'Resume event progress' : 'Pause event progress';
   $('#gtEventoTipo').textContent = selected
     ? `${selected.modalidad} · ${selected.descripcion}${selected.confirmado ? '' : ' · BLOCKED: unconfirmed YO2 rule.'}`
@@ -1371,6 +1413,12 @@ function actualizaTorneoForm() {
   $('#gtIniciar').textContent = bracket ? 'Start Championship registration' : 'Start selected event';
 }
 $('#gtEvento').addEventListener('change', () => { $('#gtPremios').dataset.familia = ''; actualizaTorneoForm(); });
+$('#gtCartaPremio').addEventListener('change', () => {
+  const b = document.querySelector('#gtPremios .torneo-condicion.on');
+  if (!b) return;
+  b.dataset.card = $('#gtCartaPremio').value;
+  b.querySelector('small').textContent = cartaPremioNombre(b.dataset.card);
+});
 async function accionTorneo(accion) {
   const r = await call('GestionAccionTorneo', accion, $('#gtNombre').value.trim(),
     Number($('#gtEvento').value) || 11, Number($('#gtSerial').value) || 1,
@@ -1381,7 +1429,7 @@ $('#gtGuardarPremios').onclick = () => gHacer(async () => {
   const selected = G.eventos && G.eventos.find(x => String(x.evento) === $('#gtEvento').value);
   if (!selected) throw new Error('Choose an event.');
   const rewards = {};
-  for (const x of document.querySelectorAll('#gtPremios .gtPremio')) rewards[x.dataset.milestone] = Number(x.value) || 0;
+  for (const x of document.querySelectorAll('#gtPremios .torneo-condicion')) rewards[x.dataset.milestone] = Number(x.dataset.card) || 0;
   const saved = await call('GestionGuardarReglaEvento', selected.familia, true, rewards);
   Object.assign(selected, saved); $('#gtPremios').dataset.familia = '';
   actualizaTorneoForm();

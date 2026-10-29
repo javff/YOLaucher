@@ -274,37 +274,50 @@
                   <div class="gtit" id="gdTit"></div><div class="glista" id="gdLista"></div>
                 </section>
                 <section class="gsec" id="g-torneos" role="tabpanel">
-                  <div class="gform">
-                    <label><span class="lbl">Event or tournament</span>
-                      <select class="campo" id="gtEvento"><option value="">Loading supported events…</option></select>
-                      <small class="nota-campo" id="gtEventoAyuda">Choose a canonical YO2 event family.</small>
-                    </label>
-                    <label><span class="lbl">Edition / serial</span>
-                      <input class="campo" id="gtSerial" type="number" min="1" max="4294967295" value="1">
-                      <small class="nota-campo">A new serial starts independent progress and prevents duplicate claims.</small>
-                    </label>
-                    <label id="gtNombreBox"><span class="lbl">Tournament name</span>
-                      <input class="campo" id="gtNombre" maxlength="100" value="CHAMPIONSHIP" placeholder="CHAMPIONSHIP">
-                      <small class="nota-campo">The name shown in the Championship bracket.</small>
-                    </label>
-                    <label id="gtDiaBox"><span class="lbl">Tournament day</span>
-                      <select class="campo" id="gtDia"><option value="1">Day 1</option><option value="2">Day 2</option><option value="3">Day 3</option><option value="4">Day 4</option><option value="5">Day 5</option><option value="6">Day 6</option><option value="7">Day 7</option><option value="8">Day 8</option><option value="9">Day 9</option><option value="10">Day 10</option><option value="11">Day 11</option><option value="12">Day 12</option><option value="13">Day 13</option><option value="14">Day 14</option><option value="15">Day 15</option><option value="16">Day 16</option><option value="17">Final</option></select>
-                      <small class="nota-campo">Preliminary day 1–16, or Final for day 17.</small>
-                    </label>
-                    <label id="gtMaxBox"><span class="lbl">Maximum players</span>
-                      <select class="campo" id="gtMax"><option value="2">2</option><option value="4">4</option><option value="8" selected>8</option></select>
-                      <small class="nota-campo">Players are paired in a direct-elimination bracket.</small>
-                    </label>
-                    <div class="gform-help" id="gtEventoTipo">Events without a bracket only send the event announcement to the game client.</div>
-                    <div id="gtPremios"></div>
-                    <button class="b claro mini" id="gtGuardarPremios">Save reward cards</button>
-                    <button class="b oro mini" id="gtIniciar">Start selected event</button>
-                    <button class="b claro mini" id="gtAnunciar">Reannounce active event</button>
-                    <button class="b claro mini" id="gtTick">Advance bracket</button>
-                    <button class="b claro mini" id="gtPausar">Pause bracket</button>
-                    <button class="b claro mini" id="gtFinalizar">End event</button>
-                  </div>
                   <div class="aviso-srv" id="gtEventoEstado">No active event.</div>
+                  <div class="torneo-layout">
+                    <section class="torneo-panel">
+                      <h3>Event</h3>
+                      <label><span class="lbl">Family</span>
+                        <select class="campo" id="gtEvento"><option value="">Loading supported events…</option></select>
+                      </label>
+                      <p class="torneo-regla" id="gtEventoTipo">Choose an event to see its original YO2 rule.</p>
+                    </section>
+                    <section class="torneo-panel">
+                      <h3>Edition</h3>
+                      <label><span class="lbl">Serial</span>
+                        <input class="campo" id="gtSerial" type="number" min="1" max="4294967295" value="1">
+                        <small class="nota-campo">A new serial keeps separate progress and reward claims.</small>
+                      </label>
+                      <label id="gtNombreBox"><span class="lbl">Bracket name</span>
+                        <input class="campo" id="gtNombre" maxlength="100" value="CHAMPIONSHIP" placeholder="CHAMPIONSHIP">
+                      </label>
+                      <label id="gtDiaBox"><span class="lbl">Day</span>
+                        <select class="campo" id="gtDia"><option value="1">Day 1</option><option value="2">Day 2</option><option value="3">Day 3</option><option value="4">Day 4</option><option value="5">Day 5</option><option value="6">Day 6</option><option value="7">Day 7</option><option value="8">Day 8</option><option value="9">Day 9</option><option value="10">Day 10</option><option value="11">Day 11</option><option value="12">Day 12</option><option value="13">Day 13</option><option value="14">Day 14</option><option value="15">Day 15</option><option value="16">Day 16</option><option value="17">Final</option></select>
+                      </label>
+                      <label id="gtMaxBox"><span class="lbl">Players</span>
+                        <select class="campo" id="gtMax"><option value="2">2</option><option value="4">4</option><option value="8" selected>8</option></select>
+                      </label>
+                      <div class="torneo-acciones">
+                        <button class="b oro mini" id="gtIniciar">Start selected event</button>
+                        <button class="b claro mini" id="gtPausar">Pause event progress</button>
+                        <button class="b claro mini" id="gtFinalizar">End event</button>
+                        <button class="b claro mini" id="gtAnunciar">Reannounce active event</button>
+                        <button class="b claro mini" id="gtTick">Advance bracket</button>
+                      </div>
+                    </section>
+                    <section class="torneo-panel torneo-premios">
+                      <div class="torneo-cab">
+                        <h3>Reward cards</h3>
+                        <button class="b claro mini" id="gtGuardarPremios">Save reward cards</button>
+                      </div>
+                      <p class="torneo-regla" id="gtPremioAyuda">Select a condition, then choose its card.</p>
+                      <div class="torneo-condiciones" id="gtPremios"></div>
+                      <label><span class="lbl">Card for selected condition</span>
+                        <select class="campo" id="gtCartaPremio"><option value="0">No card reward</option></select>
+                      </label>
+                    </section>
+                  </div>
                   <div class="gtit" id="gtTit"></div><div class="glista" id="gtLista"></div>
                 </section>
               </div>
