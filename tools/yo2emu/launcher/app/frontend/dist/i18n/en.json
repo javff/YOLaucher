@@ -581,6 +581,8 @@
   "msg.gestion.bloqueado": "Too many wrong attempts: try again in a minute.",
   "msg.gestion.no_duelpass": "The server does not have DUELPASS administration installed.",
   "msg.gestion.no_torneos": "The server does not have tournament administration installed.",
+  "msg.gestion.no_eventos": "The server does not have the event engine installed.",
+  "msg.gestion.evento_regla": "This event rule is not available for YO2 Ver.080912.",
   "msg.gestion.duelpass_no_existe": "That DUELPASS code does not exist.",
   "msg.gestion.duelpass_recompensa": "The selected card or starter deck is not valid.",
   "msg.gestion.no_conectado": "That player isn't connected any more.",

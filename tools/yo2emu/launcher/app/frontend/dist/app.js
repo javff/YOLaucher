@@ -941,7 +941,10 @@ async function gCargar(forzar) {
       G.duelpass = await call('GestionDuelpass'); G.regalos = await call('GestionRegalosInicio');
       G.cartas = await call('GestionDuelpassCartas'); G.mazos = await call('GestionDuelpassMazos');
     }
-    if (G.sec === 'torneos') { G.torneo = await call('GestionTorneo'); G.eventos = await call('GestionTorneoOpciones'); }
+    if (G.sec === 'torneos') {
+      G.torneo = await call('GestionTorneo'); G.eventos = await call('GestionTorneoOpciones');
+      G.cartas = await call('GestionDuelpassCartas');
+    }
     gError(null);
   } catch (x) { gError(x); }
   G.cargando = false;
@@ -1317,40 +1320,77 @@ function pintaTorneo() {
   }
   actualizaTorneoForm();
   $('#gtTit').textContent = t0 ? (t0.activo ? t('mg.tournament_status') : t('mg.tournament_none')) : t('mg.loading');
-  $('#gtLista').replaceChildren(t0 ? el('div', { class: 'gnota', text: t0.activo
-    ? `Name: ${t0.nombre} · Phase ${t0.fase} · Round ${t0.ronda} · ${t0.vivos}/${t0.inscritos} alive · ${t0.segundos}s`
-    : 'Registration is closed.' }) : null);
-  $('#gtEventoEstado').textContent = t0 && t0.evento
-    ? `Active event: ${t0.evento.nombre}${t0.pausado ? ' · PAUSED' : ''}`
+  const progress = t0 && t0.sesion && t0.sesion.progreso ? Object.entries(t0.sesion.progreso) : [];
+  $('#gtLista').replaceChildren(
+    t0 ? el('div', { class: 'gnota', text: t0.activo
+      ? `Name: ${t0.nombre} · Phase ${t0.fase} · Round ${t0.ronda} · ${t0.vivos}/${t0.inscritos} alive · ${t0.segundos}s`
+      : 'No Championship bracket is open.' }) : null,
+    ...progress.map(([name, p]) => el('div', { class: 'gnota',
+      text: `${name} · wins ${p.victorias || 0} · streak ${p.racha || 0} · stars ${p.estrellas || 0} · pending rewards ${p.pendientes || 0}` })));
+  const sessionLive = !!(t0 && t0.sesion && ['activo', 'pausado'].includes(t0.sesion.estado));
+  $('#gtEventoEstado').textContent = t0 && (t0.evento || sessionLive)
+    ? `Active event: ${t0.evento ? t0.evento.nombre : t0.sesion.familia} · edition ${t0.sesion ? t0.sesion.serial : t0.evento.serial}${t0.pausado ? ' · PAUSED' : ''}`
     : 'No active event.';
+}
+function pintaPremios(selected) {
+  const box = $('#gtPremios');
+  if (!selected || box.dataset.familia === selected.familia) return;
+  box.dataset.familia = selected.familia;
+  const cards = G.cartas || [];
+  box.replaceChildren(el('div', { class: 'gform-help', text: selected.confirmado
+    ? 'Reward cards are delivered only after reaching each original YO2 condition.'
+    : 'Historical rule not confirmed for YO2 Ver.080912. This event cannot start.' }));
+  for (const milestone of selected.milestones || []) {
+    const sel = el('select', { class: 'campo gtPremio' },
+      el('option', { value: '0', text: 'No card reward' }),
+      ...cards.map(c => el('option', { value: String(c.id), text: `${c.id} · ${c.nombre || 'Card'}` })));
+    sel.dataset.milestone = String(milestone);
+    sel.value = String((selected.recompensas || {})[String(milestone)] || 0);
+    sel.disabled = !selected.confirmado;
+    box.append(el('label', {}, el('span', { class: 'lbl', text: `Condition: ${milestone}` }), sel));
+  }
 }
 function actualizaTorneoForm() {
   const selected = G.eventos && G.eventos.find(x => String(x.evento) === $('#gtEvento').value);
   const bracket = !!(selected && selected.cuadro);
+  pintaPremios(selected);
   for (const id of ['#gtNombre', '#gtDia', '#gtMax']) $(id).disabled = !bracket;
   for (const id of ['#gtNombreBox', '#gtDiaBox', '#gtMaxBox']) $(id).hidden = !bracket;
-  const active = !!(G.torneo && (G.torneo.activo || G.torneo.evento));
+  const liveSession = !!(G.torneo && G.torneo.sesion && ['activo', 'pausado'].includes(G.torneo.sesion.estado));
+  const active = !!(G.torneo && (G.torneo.activo || G.torneo.evento || liveSession));
   $('#gtTick').disabled = !bracket || !active || !!G.torneo.pausado;
-  $('#gtPausar').disabled = !bracket || !G.torneo || !G.torneo.activo;
+  $('#gtPausar').disabled = !active;
   $('#gtFinalizar').disabled = !active;
   $('#gtAnunciar').disabled = !(G.torneo && G.torneo.evento);
-  $('#gtPausar').textContent = G.torneo && G.torneo.pausado ? 'Resume bracket' : 'Pause bracket';
-  $('#gtEventoTipo').textContent = bracket
-    ? 'Championship opens a playable direct-elimination bracket.'
-    : 'This event only sends an announcement to the game client; it has no playable bracket in this server.';
+  $('#gtGuardarPremios').disabled = !(selected && selected.confirmado);
+  $('#gtIniciar').disabled = !(selected && selected.confirmado && selected.activo);
+  $('#gtPausar').textContent = G.torneo && G.torneo.pausado ? 'Resume event progress' : 'Pause event progress';
+  $('#gtEventoTipo').textContent = selected
+    ? `${selected.modalidad} · ${selected.descripcion}${selected.confirmado ? '' : ' · BLOCKED: unconfirmed YO2 rule.'}`
+    : 'Choose an event.';
   $('#gtIniciar').textContent = bracket ? 'Start Championship registration' : 'Start selected event';
 }
-$('#gtEvento').addEventListener('change', actualizaTorneoForm);
+$('#gtEvento').addEventListener('change', () => { $('#gtPremios').dataset.familia = ''; actualizaTorneoForm(); });
 async function accionTorneo(accion) {
   const r = await call('GestionAccionTorneo', accion, $('#gtNombre').value.trim(),
-    Number($('#gtEvento').value) || 11, 1, Number($('#gtDia').value) || 1, Number($('#gtMax').value) || 8);
+    Number($('#gtEvento').value) || 11, Number($('#gtSerial').value) || 1,
+    Number($('#gtDia').value) || 1, Number($('#gtMax').value) || 8);
   G.torneo = r; pintaGestion();
 }
+$('#gtGuardarPremios').onclick = () => gHacer(async () => {
+  const selected = G.eventos && G.eventos.find(x => String(x.evento) === $('#gtEvento').value);
+  if (!selected) throw new Error('Choose an event.');
+  const rewards = {};
+  for (const x of document.querySelectorAll('#gtPremios .gtPremio')) rewards[x.dataset.milestone] = Number(x.value) || 0;
+  const saved = await call('GestionGuardarReglaEvento', selected.familia, true, rewards);
+  Object.assign(selected, saved); $('#gtPremios').dataset.familia = '';
+  actualizaTorneoForm();
+}, 'Event rewards saved.');
 $('#gtIniciar').onclick = () => gHacer(() => accionTorneo('iniciar'), t('mg.tournament_started'));
 $('#gtAnunciar').onclick = () => gHacer(() => accionTorneo('evento_on'), t('mg.tournament_event'));
 $('#gtTick').onclick = () => gHacer(() => accionTorneo('tick'), t('mg.tournament_advanced'));
 $('#gtPausar').onclick = () => gHacer(() => accionTorneo(G.torneo && G.torneo.pausado ? 'reanudar' : 'pausar'),
-  G.torneo && G.torneo.pausado ? 'Bracket resumed.' : 'Bracket paused.');
+  G.torneo && G.torneo.pausado ? 'Event progress resumed.' : 'Event progress paused.');
 $('#gtFinalizar').onclick = () => gHacer(() => accionTorneo('finalizar'), 'Event ended.');
 
 // ------------------------------------------------------------------ NOVEDADES

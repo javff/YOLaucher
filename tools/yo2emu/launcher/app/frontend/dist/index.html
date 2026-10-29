@@ -277,7 +277,11 @@
                   <div class="gform">
                     <label><span class="lbl">Event or tournament</span>
                       <select class="campo" id="gtEvento"><option value="">Loading supported events…</option></select>
-                      <small class="nota-campo" id="gtEventoAyuda">Choose a supported event. Championship is the only one with a playable bracket.</small>
+                      <small class="nota-campo" id="gtEventoAyuda">Choose a canonical YO2 event family.</small>
+                    </label>
+                    <label><span class="lbl">Edition / serial</span>
+                      <input class="campo" id="gtSerial" type="number" min="1" max="4294967295" value="1">
+                      <small class="nota-campo">A new serial starts independent progress and prevents duplicate claims.</small>
                     </label>
                     <label id="gtNombreBox"><span class="lbl">Tournament name</span>
                       <input class="campo" id="gtNombre" maxlength="100" value="CHAMPIONSHIP" placeholder="CHAMPIONSHIP">
@@ -292,6 +296,8 @@
                       <small class="nota-campo">Players are paired in a direct-elimination bracket.</small>
                     </label>
                     <div class="gform-help" id="gtEventoTipo">Events without a bracket only send the event announcement to the game client.</div>
+                    <div id="gtPremios"></div>
+                    <button class="b claro mini" id="gtGuardarPremios">Save reward cards</button>
                     <button class="b oro mini" id="gtIniciar">Start selected event</button>
                     <button class="b claro mini" id="gtAnunciar">Reannounce active event</button>
                     <button class="b claro mini" id="gtTick">Advance bracket</button>

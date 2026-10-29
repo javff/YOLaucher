@@ -520,24 +520,32 @@ def _finish(t, now, cancelled=False):
 
 
 def _award(t):
-    if not PRIZE_TP:
+    ER = NS.get("ER")
+    if not PRIZE_TP and ER is None:
         return
-    s = t.by_pid(t.champion).get("sess")
     ctx, PP = NS.get("CTX"), NS.get("PP")
-    if s is None or PP is None or "load_state" not in NS:
+    if PP is None or "load_state" not in NS:
         return
-    old = getattr(ctx, "sess", None)
-    try:
-        ctx.sess = s
-        lk = NS.get("STATE_LOCK") or threading.RLock()
-        with lk:
-            st = NS["load_state"]()
-            p = PP.profile(st, s.slot if getattr(s, "slot", None) is not None else PP.active_slot(st))
-            r = p.setdefault("rec", {})   # el TP vive en rec (PDU_SPEC / 0x3012), no en la raíz del perfil
-            r["tp"] = int(r.get("tp", 0) or 0) + int(PRIZE_TP)
-            NS["save_state"](st)
-    finally:
-        ctx.sess = old
+    for pid, placement in ((t.runner_up, "subcampeon"), (t.champion, "campeon")):
+        row = t.by_pid(pid) if pid is not None else None
+        s = row.get("sess") if row else None
+        if s is None:
+            continue
+        old = getattr(ctx, "sess", None)
+        try:
+            ctx.sess = s
+            lk = NS.get("STATE_LOCK") or threading.RLock()
+            with lk:
+                st = NS["load_state"]()
+                p = PP.profile(st, s.slot if getattr(s, "slot", None) is not None else PP.active_slot(st))
+                if placement == "campeon" and PRIZE_TP:
+                    r = p.setdefault("rec", {})
+                    r["tp"] = int(r.get("tp", 0) or 0) + int(PRIZE_TP)
+                if ER is not None and hasattr(ER, "championship_award"):
+                    ER.championship_award(p, placement)
+                NS["save_state"](st)
+        finally:
+            ctx.sess = old
 
 
 # ---------------------------------------------------------------- reloj

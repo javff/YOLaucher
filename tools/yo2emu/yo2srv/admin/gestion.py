@@ -40,6 +40,8 @@ Rutas (todas JSON; errores {"error": <clave estable>, "mensaje": <español>} con
     GET/POST /gestion/duelpass/inicio            regalos de nuevos personajes
     GET  /gestion/torneo/opciones                eventos soportados por el cliente
     GET/POST /gestion/torneo                     estado y acciones de eventos/CHAMPIONSHIP
+    GET  /gestion/eventos/reglas                 catálogo, recompensas y sesión competitiva
+    POST /gestion/eventos/regla                  {familia,activo,recompensas:{condicion:carta}}
 `acct` = el id corto (>= 6 hex) o completo. La API nunca devuelve el id completo, IP, contraseñas ni el token.
 
 Cada acción (también las rechazadas) deja una línea en admin_auditoria.log (el del panel): fecha, «g-<acción>», destino y
@@ -334,18 +336,49 @@ def _torneos():
     return t
 
 
+def _eventos():
+    e = MOD.NS.get("ER")
+    if e is None:
+        raise MOD.ApiError("motor de eventos no está instalado", clave="no_eventos")
+    return e
+
+
+def eventos_reglas():
+    e = _eventos()
+    return {"familias": e.catalog(), "sesion": e.state()}
+
+
+def a_eventos_regla(a):
+    e, pp = _eventos(), MOD.NS.get("PP")
+    family = _texto(a, "familia", 40)
+    rewards = a.get("recompensas") or {}
+    if not isinstance(rewards, dict):
+        raise MOD.ApiError("recompensas inválidas", clave="evento_regla")
+    try:
+        e.save_rule(family, rewards, bool(a.get("activo", True)),
+                    valid_card=(pp.card_ok if pp is not None else None))
+    except (ValueError, TypeError) as ex:
+        raise MOD.ApiError(str(ex), clave="evento_regla") from ex
+    out = next(x for x in torneo_opciones()["eventos"] if x["familia"] == family)
+    return {"ok": True, "regla": out}, family, "regla actualizada"
+
+
 def torneo_opciones():
-    tmod = _torneos()
     starts = []
-    for event, name in sorted(tmod.EVENT_NAMES.items()):
-        if event % 2:
-            starts.append({"evento": int(event), "nombre": str(name),
-                           "cuadro": event == tmod.EV_CHAMPIONSHIP_ON})
+    for item in _eventos().catalog():
+        starts.append({
+            "evento": int(item["eventos"][0]), "familia": item["id"], "nombre": item["nombre"],
+            "cuadro": item["id"] == "championship", "modalidad": item["modalidad"],
+            "contador": item["contador"], "descripcion": item["descripcion"],
+            "confirmado": item["confirmado"], "activo": item["activo"],
+            "milestones": item["milestones"], "recompensas": item["recompensas"],
+        })
     return {"eventos": starts}
 
 
 def torneo_estado():
     tmod = _torneos()
+    sesion = _eventos().state()
     t = tmod.TOUR
     evento = None
     if tmod.CURRENT_EVENT is not None:
@@ -354,28 +387,38 @@ def torneo_estado():
             evento = {"serial": int(serial), "world": int(world), "estado": int(state),
                       "nombre": str(tmod.EVENT_NAMES.get(state, "EVENT"))}
     if t is None:
-        return {"activo": False, "estado": -1, "evento": evento, "pausado": False, "config": {
+        return {"activo": False, "estado": -1, "evento": evento, "sesion": sesion,
+                "pausado": bool(sesion and sesion.get("estado") == "pausado"), "config": {
             "torneos": bool(tmod.TOURNAMENT_ON), "eventos": bool(tmod.EVENTS_ON),
             "reloj": bool(tmod.AUTO_CLOCK)}}
-    return {"activo": True, "serial": t.serial, "dia": t.day, "nombre": t.name, "max_jugadores": t.max_players,
-            "estado": int(t.state), "evento": evento, "pausado": bool(getattr(tmod, "PAUSED", False)),
+    return {"activo": int(t.state) != tmod.ST_END, "serial": t.serial, "dia": t.day, "nombre": t.name, "max_jugadores": t.max_players,
+            "estado": int(t.state), "evento": evento, "sesion": sesion,
+            "pausado": bool(getattr(tmod, "PAUSED", False)) or bool(sesion and sesion.get("estado") == "pausado"),
             "fase": int(t.phase), "ronda": int(t.round),
             "inscritos": len(t.seats), "vivos": len(t.alive()), "espectadores": t.audience(),
             "segundos": t.seconds_left(), "campeon": t.champion, "subcampeon": t.runner_up}
 
 
 def a_torneo(a):
-    tmod = _torneos()
+    tmod, emod = _torneos(), _eventos()
     accion = a.get("accion", "estado")
     if accion == "iniciar":
         evento = _entero(a, "evento", 1, 0x100, tmod.EV_CHAMPIONSHIP_ON)
+        serial = _entero(a, "serial", 1, 0xffffffff, 1)
+        family = emod.family_for_event(evento)
+        if family is None:
+            raise MOD.ApiError("evento no soportado", clave="torneo_entrada")
+        try:
+            emod.start(family, serial)
+        except ValueError as ex:
+            raise MOD.ApiError(str(ex), clave="evento_regla") from ex
         if evento != tmod.EV_CHAMPIONSHIP_ON:
             if evento not in tmod.EVENT_NAMES or evento % 2 == 0:
                 raise MOD.ApiError("evento no soportado", clave="torneo_entrada")
-            tmod.push_event(evento)
+            tmod.push_event(evento, serial=serial)
         else:
             nombre = _texto(a, "nombre", 100)
-            serial, dia, maxp = _entero(a, "serial", 1, 0xffffffff, 1), _entero(a, "dia", 1, 0x11, 1), _entero(a, "max_jugadores", 2, 8, 8)
+            dia, maxp = _entero(a, "dia", 1, 0x11, 1), _entero(a, "max_jugadores", 2, 8, 8)
             tmod.push_event(tmod.EV_CHAMPIONSHIP_ON, serial=serial)
             tmod.start_tournament(serial=serial, day=dia, name=nombre, max_players=maxp)
     elif accion == "evento_on":
@@ -386,14 +429,27 @@ def a_torneo(a):
         if tmod.CURRENT_EVENT is None or int(tmod.CURRENT_EVENT[2]) % 2 == 0:
             raise MOD.ApiError("no hay evento activo para finalizar", clave="torneo_entrada")
         tmod.push_event(int(tmod.CURRENT_EVENT[2]) + 1)
+        emod.finish()
     elif accion == "tick":
         tmod.tick()
     elif accion == "pausar":
-        tmod.pause_tournament()
+        if tmod.TOUR is not None:
+            tmod.pause_tournament()
+        try:
+            emod.pause(True)
+        except ValueError as ex:
+            raise MOD.ApiError(str(ex), clave="torneo_entrada") from ex
     elif accion == "reanudar":
-        tmod.resume_tournament()
+        if tmod.TOUR is not None:
+            tmod.resume_tournament()
+        try:
+            emod.pause(False)
+        except ValueError as ex:
+            raise MOD.ApiError(str(ex), clave="torneo_entrada") from ex
     elif accion == "finalizar":
-        tmod.finish_tournament()
+        if tmod.TOUR is not None:
+            tmod.finish_tournament()
+        emod.finish()
         if tmod.CURRENT_EVENT is not None:
             tmod.push_event(int(tmod.CURRENT_EVENT[2]) + 1)
     elif accion != "estado":
@@ -415,7 +471,8 @@ def a_copia(a):
 GET = {"/gestion/jugadores": jugadores, "/gestion/vetados": vetados, "/gestion/cuentas": cuentas,
        "/gestion/copias": lambda: {"copias": MOD.backups()}, "/gestion/duelpass": duelpass_codigos,
        "/gestion/duelpass/mazos": duelpass_mazos, "/gestion/duelpass/cartas": duelpass_cartas,
-       "/gestion/duelpass/inicio": duelpass_inicio, "/gestion/torneo": torneo_estado,
+       "/gestion/duelpass/inicio": duelpass_inicio, "/gestion/eventos/reglas": eventos_reglas,
+       "/gestion/torneo": torneo_estado,
        "/gestion/torneo/opciones": torneo_opciones}
 POST = {"/gestion/expulsar": ("expulsar", a_expulsar), "/gestion/vetar": ("vetar", a_vetar),
         "/gestion/quitar_veto": ("quitar_veto", a_quitar_veto), "/gestion/crear": ("cuenta_crear", a_crear),
@@ -424,6 +481,7 @@ POST = {"/gestion/expulsar": ("expulsar", a_expulsar), "/gestion/vetar": ("vetar
         "/gestion/dp": ("dp", a_dp), "/gestion/duelpass/crear": ("duelpass_crear", a_duelpass_crear),
         "/gestion/duelpass/anular": ("duelpass_anular", a_duelpass_anular),
         "/gestion/duelpass/inicio": ("duelpass_inicio", a_duelpass_inicio),
+        "/gestion/eventos/regla": ("evento_regla", a_eventos_regla),
         "/gestion/torneo": ("torneo", a_torneo)}
 
 

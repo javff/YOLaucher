@@ -178,6 +178,10 @@ func errGestion(status int, clave, mensaje string) error {
 		return errM("msg.gestion.no_duelpass", "El servidor no tiene instalado el módulo DUELPASS.")
 	case "no_torneos":
 		return errM("msg.gestion.no_torneos", "El servidor no tiene instalado el módulo de torneos.")
+	case "no_eventos":
+		return errM("msg.gestion.no_eventos", "El servidor no tiene instalado el motor de eventos.")
+	case "evento_regla":
+		return errM("msg.gestion.evento_regla", mensaje)
 	case "duelpass_no_existe":
 		return errM("msg.gestion.duelpass_no_existe", "Ese código DUELPASS no existe.")
 	case "duelpass_carta", "duelpass_mazo":
@@ -353,9 +357,26 @@ type DuelpassMazoG struct {
 }
 
 type EventoTorneoG struct {
-	Evento int    `json:"evento"`
-	Nombre string `json:"nombre"`
-	Cuadro bool   `json:"cuadro"`
+	Evento      int            `json:"evento"`
+	Familia     string         `json:"familia"`
+	Nombre      string         `json:"nombre"`
+	Cuadro      bool           `json:"cuadro"`
+	Modalidad   string         `json:"modalidad"`
+	Contador    string         `json:"contador"`
+	Descripcion string         `json:"descripcion"`
+	Confirmado  bool           `json:"confirmado"`
+	Activo      bool           `json:"activo"`
+	Milestones  []any          `json:"milestones"`
+	Recompensas map[string]int `json:"recompensas"`
+}
+
+type SesionEventoG struct {
+	Familia  string                    `json:"familia"`
+	Serial   int                       `json:"serial"`
+	Estado   string                    `json:"estado"`
+	Inicio   int64                     `json:"inicio"`
+	Fin      *int64                    `json:"fin"`
+	Progreso map[string]map[string]int `json:"progreso"`
 }
 
 type EventoActivoG struct {
@@ -379,6 +400,7 @@ type TorneoG struct {
 	MaxJugadores int            `json:"max_jugadores"`
 	Estado       int            `json:"estado"` // -1 = sin cuadro
 	Evento       *EventoActivoG `json:"evento"`
+	Sesion       *SesionEventoG `json:"sesion"`
 	Pausado      bool           `json:"pausado"`
 	Fase         int            `json:"fase"`
 	Ronda        int            `json:"ronda"`
@@ -656,6 +678,15 @@ func (g *Gestion) AccionTorneo(accion, nombre string, evento, serial, dia, maxJu
 	return r.Torneo, err
 }
 
+func (g *Gestion) GuardarReglaEvento(familia string, activo bool, recompensas map[string]int) (EventoTorneoG, error) {
+	var r struct {
+		Regla EventoTorneoG `json:"regla"`
+	}
+	err := g.llamar("POST", "/gestion/eventos/regla",
+		map[string]any{"familia": familia, "activo": activo, "recompensas": recompensas}, &r)
+	return r.Regla, err
+}
+
 // ---------------------------------------------------------------- métodos de la ventana (Nucleo)
 
 // gestion: el cliente de la API de gestión del servidor que ESTE lanzador tiene en marcha (el run.py puede haberlo arrancado
@@ -776,6 +807,13 @@ func (n *Nucleo) GestionTorneoOpciones() (r []EventoTorneoG, err error) {
 func (n *Nucleo) GestionAccionTorneo(accion, nombre string, evento, serial, dia, maxJugadores int) (r TorneoG, err error) {
 	err = n.conGestion(func(g *Gestion) (e error) {
 		r, e = g.AccionTorneo(accion, nombre, evento, serial, dia, maxJugadores)
+		return
+	})
+	return
+}
+func (n *Nucleo) GestionGuardarReglaEvento(familia string, activo bool, recompensas map[string]int) (r EventoTorneoG, err error) {
+	err = n.conGestion(func(g *Gestion) (e error) {
+		r, e = g.GuardarReglaEvento(familia, activo, recompensas)
 		return
 	})
 	return
