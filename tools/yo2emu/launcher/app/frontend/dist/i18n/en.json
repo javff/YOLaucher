@@ -354,6 +354,7 @@
   "msg.err.juego_ya_abierto": "The game is already open from this launcher.",
   "msg.err.lleno": "The server is full right now. Try again in a bit.",
   "msg.err.nada_que_reintentar": "Nothing to retry.",
+  "msg.err.crossover": "Couldn't open the game with CrossOver. In Settings, choose the game folder inside the bottle (the one with yo2.exe), or set YO2_CX_BOTTLE to the bottle name.",
   "msg.err.no_abre_juego": "Couldn't open the game. If you use antivirus, allow the folder %LOCALAPPDATA%\\YO2Online (frida-inject.exe lives there).",
   "msg.err.no_conectado": "You're not connected to any server.",
   "msg.err.no_copia": "Couldn't copy to the clipboard: {error}",

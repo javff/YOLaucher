@@ -25,7 +25,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -487,10 +486,8 @@ func (n *Nucleo) arrancarGuardado(id string, clave *sala.ClaveServidor) error {
 		if runpy == "" {
 			return errM("msg.err.no_runpy", "No encuentro run.py (el servidor del juego). YO2OnlineLauncher.exe tiene que estar dentro de la carpeta tools\\yo2emu del proyecto, junto a run.py.")
 		}
-		if _, err := exec.LookPath("python"); err != nil && pq == nil {
-			if _, err := exec.LookPath("py"); err != nil {
-				return errM("msg.err.no_python", "No encuentro Python en este PC, y run.py lo necesita para arrancar.")
-			}
+		if pq == nil && !sala.HayPython() {
+			return errM("msg.err.no_python", "No encuentro Python en este PC, y run.py lo necesita para arrancar.")
 		}
 	}
 	o := f.OpcServidor(n.cfg.Offset)
