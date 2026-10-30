@@ -490,6 +490,9 @@ func (n *Nucleo) arrancarGuardado(id string, clave *sala.ClaveServidor) error {
 		if pq == nil && !sala.HayPython() {
 			return errM("msg.err.no_python", "No encuentro Python en este PC, y run.py lo necesita para arrancar.")
 		}
+		if pq == nil && !sala.HayNode() {
+			return errM("msg.err.no_node", "No encuentro Node.js (≥ 18) en este PC, y el motor de duelos lo necesita.")
+		}
 	}
 	o := f.OpcServidor(n.cfg.Offset)
 	o.DirAnfitrion, o.DirDatos = n.dirAnfitrion(sg), n.dirDatos(sg)

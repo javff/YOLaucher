@@ -26,7 +26,8 @@ el vivo del owner) cada función de aquí devuelve EXACTAMENTE lo de antes. Vari
                       data/… sin ese data/: lo que escribe paquete/extraer_juego.py de P2). Hoy:
                       <root>/_original/extracted/merge2008/data
     YO2_VENDOR        cards.cdb, strings.conf y CardScripts/. Hoy: <root>/_vendor (duelcore la recibe como VENDOR_DIR)
-    YO2_NODE          node.exe. Hoy: el `node` del PATH
+    YO2_NODE          node.exe. Hoy: el `node` del PATH; si no está (app de macOS sin nvm/Homebrew en el PATH),
+                      nvm / Homebrew / /usr/local (≥ 18, para tsx y duelcore)
     YO2_DUELCORE      el motor: un .mjs (esbuild, un solo fichero) se lanza con `node <mjs>`; un .mts, con tsx como hoy.
                       Hoy: <emu>/duelcore/duelcore.mts
     YO2_STATE / YO2_LOGDIR   como siempre; en modo paquete, sin ellas: %LOCALAPPDATA%\\YO2Online\\servidor\\<5730+offset>\\
@@ -34,7 +35,8 @@ el vivo del owner) cada función de aquí devuelve EXACTAMENTE lo de antes. Vari
 """
 import os
 import shutil
-from typing import NamedTuple, Optional
+import subprocess
+from typing import NamedTuple, Optional, Tuple
 
 # Este fichero está en <EMU>/yo2srv/rutas.py. Si el módulo cambia de sitio, se cambia SOLO esto.
 _EMU_DESDE_AQUI = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
@@ -157,12 +159,78 @@ def vendor(env=None) -> str:
     return os.path.abspath(v) if v else os.path.join(ROOT, "_vendor")
 
 
+# tsx 4 / duelcore.mts: Node ≥ 18. Una app abierta desde el Finder no hereda nvm ni Homebrew.
+_NODE_MIN = (18, 0, 0)
+
+
+def _version_de_nombre_node(nombre: str) -> Optional[Tuple[int, int, int]]:
+    """'v20.20.2' / '20.20.2' -> (20, 20, 2). None si no es una versión."""
+    s = nombre[1:] if nombre[:1] in "vV" else nombre
+    try:
+        parts = [int(p) for p in s.split(".")[:3]]
+    except ValueError:
+        return None
+    while len(parts) < 3:
+        parts.append(0)
+    return parts[0], parts[1], parts[2]
+
+
+def _version_node(exe: str) -> Optional[Tuple[int, int, int]]:
+    try:
+        out = subprocess.check_output([exe, "-v"], stderr=subprocess.DEVNULL, timeout=5, text=True)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return _version_de_nombre_node(out.strip())
+
+
+def _node_conocido(home: Optional[str] = None) -> Optional[str]:
+    """node fuera del PATH: nvm (más nuevo ≥ 18), Homebrew, /usr/local, volta, fnm."""
+    if home is None:
+        home = os.path.expanduser("~")
+    cands = []  # (versión, ruta)
+
+    def add(path, ver=None):
+        if not path or not os.path.isfile(path) or not os.access(path, os.X_OK):
+            return
+        if ver is None:
+            ver = _version_node(path)
+        if ver is None:
+            return
+        cands.append((ver, path))
+
+    nvm = os.path.join(home, ".nvm", "versions", "node")
+    if os.path.isdir(nvm):
+        for name in os.listdir(nvm):
+            add(os.path.join(nvm, name, "bin", "node"), _version_de_nombre_node(name))
+    add("/opt/homebrew/bin/node")
+    add("/usr/local/bin/node")
+    add(os.path.join(home, ".volta", "bin", "node"))
+    add(os.path.join(home, ".local", "share", "fnm", "aliases", "default", "bin", "node"))
+    add(os.path.join(home, "Library", "Application Support", "fnm", "aliases", "default", "bin", "node"))
+
+    buenos = [c for c in cands if c[0] >= _NODE_MIN]
+    pool = buenos or cands
+    if not pool:
+        return None
+    pool.sort(reverse=True)
+    return pool[0][1]
+
+
 def node(env=None) -> Optional[str]:
-    """YO2_NODE (node.exe a usar) o el `node` del PATH (None si no hay)."""
+    """YO2_NODE (node.exe a usar) o el `node` del PATH (None si no hay).
+
+    Una app de macOS abierta desde el Finder no hereda el PATH del shell: si `which node`
+    falla o el del PATH es < 18, se miran nvm / Homebrew / /usr/local.
+    """
     v = _entorno(env).get("YO2_NODE")
-    if not v:
-        return shutil.which("node")
-    return os.path.abspath(v) if os.path.dirname(v) else (shutil.which(v) or v)
+    if v:
+        return os.path.abspath(v) if os.path.dirname(v) else (shutil.which(v) or v)
+    found = shutil.which("node")
+    if found:
+        ver = _version_node(found)
+        if ver is not None and ver >= _NODE_MIN:
+            return found
+    return _node_conocido() or found
 
 
 def packinfo(env=None) -> str:

@@ -14,6 +14,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -65,42 +67,256 @@ func PythonExe() string {
 // el PATH del shell, así que también se miran las rutas fijas de Homebrew y del framework.
 func HayPython() bool { return buscarPython() != "" }
 
+func aliasPythonTienda(p string) bool {
+	s := strings.ToLower(strings.ReplaceAll(p, `\`, "/"))
+	return strings.Contains(s, "/windowsapps/")
+}
+
 func buscarPython() string {
 	var cands []string
 	visto := map[string]bool{}
 	add := func(p string) {
-		if p == "" || visto[p] {
+		if p == "" || visto[p] || aliasPythonTienda(p) {
 			return
 		}
 		visto[p] = true
 		cands = append(cands, p)
 	}
-	for _, nombre := range []string{"python3", "python", "py"} {
+	// Windows: el original usaba python y luego py. python3 suele ser el alias de Microsoft Store
+	// (WindowsApps), que LookPath encuentra, arranca y se cierra sin abrir el 5730.
+	nombres := []string{"python", "py", "python3"}
+	if runtime.GOOS != "windows" {
+		nombres = []string{"python3", "python", "py"}
+	}
+	for _, nombre := range nombres {
 		if x, err := exec.LookPath(nombre); err == nil {
 			add(x)
 		}
 	}
-	for _, p := range []string{
-		"/opt/homebrew/bin/python3",
-		"/usr/local/bin/python3",
-		"/Library/Frameworks/Python.framework/Versions/Current/bin/python3",
-		"/usr/bin/python3",
-	} {
-		if st, err := os.Stat(p); err == nil && !st.IsDir() {
-			add(p)
+	if runtime.GOOS != "windows" {
+		for _, p := range []string{
+			"/opt/homebrew/bin/python3",
+			"/usr/local/bin/python3",
+			"/Library/Frameworks/Python.framework/Versions/Current/bin/python3",
+			"/usr/bin/python3",
+		} {
+			if st, err := os.Stat(p); err == nil && !st.IsDir() {
+				add(p)
+			}
 		}
 	}
-	primero := ""
+	var primero, conVersion string
 	for _, p := range cands {
+		mayor, menor, ok := versionPython(p)
+		if !ok {
+			continue
+		}
 		if primero == "" {
 			primero = p
 		}
+		if conVersion == "" {
+			conVersion = p
+		}
 		// El servidor se desarrolla con 3.12. 3.9 de /usr/bin no vale si hay otro más nuevo.
-		if mayor, menor, ok := versionPython(p); ok && (mayor > 3 || (mayor == 3 && menor >= 12)) {
+		if mayor > 3 || (mayor == 3 && menor >= 12) {
 			return p
 		}
 	}
+	if conVersion != "" {
+		return conVersion
+	}
 	return primero
+}
+
+// NodeExe: node para duelcore (≥ 18). Una app de macOS abierta desde el Finder no hereda el PATH
+// del shell (nvm, Homebrew), así que también se miran esas rutas. "" = no está.
+func NodeExe() string {
+	if p := buscarNode(); p != "" {
+		return p
+	}
+	return ""
+}
+
+// HayNode: hay un node ≥ 18 (duelcore / tsx). Misma salvedad de PATH que HayPython.
+func HayNode() bool { return buscarNode() != "" }
+
+func buscarNode() string {
+	if x, err := exec.LookPath("node"); err == nil {
+		if mayor, _, ok := versionNode(x); ok && mayor >= 18 {
+			return x
+		}
+	}
+	for _, p := range nodosNvm() {
+		name := filepath.Base(filepath.Dir(filepath.Dir(p)))
+		if mayor, _, _, ok := versionDeNombreNode(name); ok && mayor >= 18 {
+			return p
+		}
+	}
+	home, errHome := os.UserHomeDir()
+	fijos := []string{"/opt/homebrew/bin/node", "/usr/local/bin/node"}
+	if errHome == nil {
+		fijos = append(fijos,
+			filepath.Join(home, ".volta", "bin", "node"),
+			filepath.Join(home, ".local", "share", "fnm", "aliases", "default", "bin", "node"),
+			filepath.Join(home, "Library", "Application Support", "fnm", "aliases", "default", "bin", "node"),
+		)
+	}
+	for _, p := range fijos {
+		if st, err := os.Stat(p); err != nil || st.IsDir() {
+			continue
+		}
+		if mayor, _, ok := versionNode(p); ok && mayor >= 18 {
+			return p
+		}
+	}
+	if x, err := exec.LookPath("node"); err == nil {
+		return x
+	}
+	for _, p := range fijos {
+		if st, err := os.Stat(p); err == nil && !st.IsDir() {
+			return p
+		}
+	}
+	if n := nodosNvm(); len(n) > 0 {
+		return n[0]
+	}
+	return ""
+}
+
+func nodosNvm() []string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil
+	}
+	root := filepath.Join(home, ".nvm", "versions", "node")
+	ents, err := os.ReadDir(root)
+	if err != nil {
+		return nil
+	}
+	type nv struct {
+		path        string
+		maj, min, p int
+	}
+	var xs []nv
+	for _, e := range ents {
+		if !e.IsDir() {
+			continue
+		}
+		maj, min, pat, ok := versionDeNombreNode(e.Name())
+		if !ok {
+			continue
+		}
+		p := filepath.Join(root, e.Name(), "bin", "node")
+		if st, err := os.Stat(p); err != nil || st.IsDir() {
+			continue
+		}
+		xs = append(xs, nv{p, maj, min, pat})
+	}
+	sort.Slice(xs, func(i, j int) bool {
+		if xs[i].maj != xs[j].maj {
+			return xs[i].maj > xs[j].maj
+		}
+		if xs[i].min != xs[j].min {
+			return xs[i].min > xs[j].min
+		}
+		return xs[i].p > xs[j].p
+	})
+	out := make([]string, len(xs))
+	for i, x := range xs {
+		out[i] = x.path
+	}
+	return out
+}
+
+func versionDeNombreNode(name string) (mayor, menor, parche int, ok bool) {
+	s := strings.TrimPrefix(name, "v")
+	f := strings.Split(s, ".")
+	if len(f) < 2 {
+		return 0, 0, 0, false
+	}
+	var err error
+	if mayor, err = strconv.Atoi(f[0]); err != nil {
+		return 0, 0, 0, false
+	}
+	if menor, err = strconv.Atoi(f[1]); err != nil {
+		return 0, 0, 0, false
+	}
+	if len(f) >= 3 {
+		parche, _ = strconv.Atoi(f[2])
+	}
+	return mayor, menor, parche, true
+}
+
+func versionNode(exe string) (mayor, menor int, ok bool) {
+	out, err := exec.Command(exe, "-v").Output()
+	if err != nil {
+		return 0, 0, false
+	}
+	s := strings.TrimPrefix(strings.TrimSpace(string(out)), "v")
+	f := strings.Split(s, ".")
+	if len(f) < 2 {
+		return 0, 0, false
+	}
+	mayor, err1 := strconv.Atoi(f[0])
+	menor, err2 := strconv.Atoi(f[1])
+	if err1 != nil || err2 != nil {
+		return 0, 0, false
+	}
+	return mayor, menor, true
+}
+
+// completarEntornoNode: YO2_NODE y el directorio de node al frente del PATH, para que run.py / tsx
+// los encuentren cuando el lanzador es un .app de macOS (PATH del Finder sin nvm ni Homebrew).
+// Si el entorno ya trae YO2_NODE (paquete), no se pisa.
+func completarEntornoNode(env []string) []string {
+	node := envValor(env, "YO2_NODE")
+	if node == "" {
+		node = NodeExe()
+		if node != "" {
+			env = append(env, "YO2_NODE="+node)
+		}
+	}
+	if node == "" {
+		return env
+	}
+	return withNodeOnPATH(env, node)
+}
+
+func envValor(env []string, clave string) string {
+	for _, e := range env {
+		k, v, ok := strings.Cut(e, "=")
+		if ok && strings.EqualFold(k, clave) {
+			return v
+		}
+	}
+	return ""
+}
+
+func withNodeOnPATH(env []string, node string) []string {
+	dir := filepath.Dir(node)
+	key, val, idx := "PATH", "", -1
+	for i, e := range env {
+		k, v, ok := strings.Cut(e, "=")
+		if ok && strings.EqualFold(k, "PATH") {
+			key, val, idx = k, v, i
+			break
+		}
+	}
+	if idx < 0 {
+		val = os.Getenv("PATH")
+	}
+	sep := string(os.PathListSeparator)
+	for _, p := range strings.Split(val, sep) {
+		if p != "" && filepath.Clean(p) == filepath.Clean(dir) {
+			return env
+		}
+	}
+	nuevo := dir + sep + val
+	if idx >= 0 {
+		env[idx] = key + "=" + nuevo
+		return env
+	}
+	return append(env, key+"="+nuevo)
 }
 
 func versionPython(exe string) (mayor, menor int, ok bool) {
