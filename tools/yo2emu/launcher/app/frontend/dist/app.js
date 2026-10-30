@@ -220,7 +220,11 @@ function botonEntrar(x, grande) {
   const srvOK = S.estado && S.estado.Servidor.EnMarcha && S.estado.Servidor.JuegoOK;
   const conectado = S.estado && (S.estado.Conexion || S.estado.Entrando || S.estado.JugandoLocal);
   let texto = t(grande ? 'play.join_big' : 'play.join'), dis = false, tip = '';
-  if (x.Propio) { texto = t(grande ? 'play.here_big' : 'play.here'); dis = !srvOK; } // el propio: nunca «Join», solo «Play here»
+  if (x.Propio) {
+    texto = t(grande ? 'play.here_big' : 'play.here');
+    dis = !srvOK;
+    if (dis) tip = (!S.estado || !S.estado.Servidor.EnMarcha) ? t('play.here_no_server') : t('play.here_no_runpy');
+  } // el propio: nunca «Join», solo «Play here»
   else if (x.Estado === 'cache') { texto = grande ? t('play.checking') : texto; dis = true; tip = t('tag.cache_tip'); }
   else if (x.Estado === 'sin-respuesta') { texto = grande ? t('play.offline') : texto; dis = true; tip = t('tag.noreply_tip'); }
   else if (x.Estado === 'privado') { texto = grande ? t('play.private_now') : texto; dis = true; tip = t('tag.private_tip'); }
@@ -858,7 +862,9 @@ function pintaVivo(forzar) {
     s.Aviso && s.Aviso.k ? el('div', { class: 'aviso-srv', text: tm(s.Aviso) }) : null);
   agrega(P,
     el('button', { class: 'b oro', disabled: !s.JuegoOK || !e.JuegoOK || !!e.Conexion || e.JugandoLocal || e.Entrando,
-      title: !e.JuegoOK ? t('srv.no_game_tip') : false, onclick: () => call('JugarAqui').catch(x => toast(msg(x), 'mal')) }, icon('i-play'), t('play.here')),
+      title: !e.JuegoOK ? t('srv.no_game_tip') : !s.JuegoOK ? t('play.here_no_runpy')
+        : (!!e.Conexion || e.JugandoLocal || e.Entrando) ? t('play.busy_tip') : false,
+      onclick: () => call('JugarAqui').catch(x => toast(msg(x), 'mal')) }, icon('i-play'), t('play.here')),
     el('button', { class: 'b rojo', disabled: e.Parando, onclick: () => pararServidor() }, icon('i-stop'), e.Parando ? t('srv.stopping') : t('srv.stop')));
 }
 

@@ -92,9 +92,17 @@ class DuelCore:
         # con YO2_VENDOR, esa; con un .mjs sin VENDOR_DIR puesta a mano, rutas.vendor() (el .mjs ya no está en
         # apps/server/src/duel y su cálculo relativo no valdría). Con tsx y sin YO2_VENDOR, nada: como siempre.
         mjs = next((Path(a) for a in self.cmd[1:] if a.lower().endswith((".mjs", ".js")) and not a.startswith("file:")), None)
-        env = None
+        extra = {}
         if os.environ.get("YO2_VENDOR") or (mjs is not None and not os.environ.get("VENDOR_DIR")):
-            env = dict(os.environ, VENDOR_DIR=_rutas.vendor())
+            extra["VENDOR_DIR"] = _rutas.vendor()
+        # El .bin/tsx hace `exec node`: sin el directorio de YO2_NODE en el PATH (app de macOS) sale 127.
+        node_bin = _rutas.node()
+        if node_bin:
+            ndir = str(Path(node_bin).resolve().parent)
+            partes = os.environ.get("PATH", "").split(os.pathsep)
+            if ndir not in partes:
+                extra["PATH"] = ndir + os.pathsep + os.environ.get("PATH", "")
+        env = dict(os.environ, **extra) if extra else None
         self.proc = subprocess.Popen(
             self.cmd,
             cwd=str(mjs.parent if mjs is not None else SERVER),

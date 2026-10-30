@@ -1325,7 +1325,7 @@ type Chequeo struct {
 	Detalle Msg
 }
 
-// Comprobar revisa lo necesario para jugar y para crear servidor: juego, versión, WebView2, puertos libres, Python/run.py.
+// Comprobar revisa lo necesario para jugar y para crear servidor: juego, versión, WebView2, puertos libres, Python/Node/run.py.
 func (n *Nucleo) Comprobar() []Chequeo {
 	var r []Chequeo
 	add := func(nombre Msg, estado string, detalle Msg) { r = append(r, Chequeo{nombre, estado, detalle}) }
@@ -1333,6 +1333,7 @@ func (n *Nucleo) Comprobar() []Chequeo {
 	nVersion := sala.M("msg.chk.version", "Versión del juego")
 	nPuertos := sala.M("msg.chk.puertos", "Puertos del juego")
 	nPython := sala.M("msg.chk.python", "Python (para crear servidor)")
+	nNode := sala.M("msg.chk.node", "Node (motor de duelos)")
 	nRunPy := sala.M("msg.chk.runpy", "run.py (para crear servidor)")
 
 	c := juego.BuscarCarpeta(n.aj.leer().CarpetaJuego, n.cfg.ExeDir, n.cfg.Datos)
@@ -1384,12 +1385,20 @@ func (n *Nucleo) Comprobar() []Chequeo {
 		add(nPuertos, "aviso", sala.M("msg.chk.puertos_ocupados", fmt.Sprintf("%d puerto(s) en uso (p. ej. %d): para entrar en un servidor ajeno hay que cerrar el programa que los usa (¿un run.py o JoinServer abierto?).",
 			len(ocupados), ocupados[0]), "n", len(ocupados), "ejemplo", ocupados[0]))
 	}
-	if pq := sala.BuscarPaquete(n.cfg.ExeDir); pq != nil {
+	pq := sala.BuscarPaquete(n.cfg.ExeDir)
+	if pq != nil {
 		add(nPython, "ok", raw(pq.Python)) // P5: el del paquete
 	} else if sala.HayPython() {
 		add(nPython, "ok", raw(filepath.Base(sala.PythonExe())))
 	} else {
 		add(nPython, "aviso", sala.M("msg.chk.python_no", "No está en el PATH. Solo hace falta para crear un servidor."))
+	}
+	if pq != nil {
+		add(nNode, "ok", raw(pq.Node))
+	} else if sala.HayNode() {
+		add(nNode, "ok", raw(filepath.Base(sala.NodeExe())))
+	} else {
+		add(nNode, "aviso", sala.M("msg.chk.node_no", "No está en el PATH. El servidor lo necesita para los duelos."))
 	}
 	if rp := n.runPyVisible(); rp == "" { // P5: también el del paquete
 		add(nRunPy, "aviso", sala.M("msg.chk.runpy_no", "No está junto al lanzador. Solo hace falta para crear un servidor."))

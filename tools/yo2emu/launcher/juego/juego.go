@@ -76,7 +76,7 @@ func BuscarCarpeta(pedida, exeDir, datos string) string {
 	if b, err := os.ReadFile(filepath.Join(datos, FicheroCarpeta)); err == nil {
 		cands = append(cands, strings.TrimSpace(string(b)))
 	}
-	cands = append(cands, RutaPorDefecto)
+	cands = append(cands, RutaPorDefecto, `C:\Program Files\KONAMI\Yu-Gi-Oh! ONLINE 2`)
 	primera := ""
 	for _, c := range cands {
 		if !CarpetaValida(c) {

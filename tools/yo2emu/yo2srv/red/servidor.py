@@ -105,7 +105,11 @@ def serve(port, ip="127.0.0.1"):
     if _PARAR.is_set():
         return
     ls = socket.socket(); ls.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)    # (en run.py se llamaba srv)
-    ls.bind((ip, port)); ls.listen(16)
+    try:
+        ls.bind((ip, port)); ls.listen(16)
+    except OSError as e:
+        srv.log(f"[ERROR] [srv] no se puede escuchar en {ip}:{port}: {e}")
+        return
     ls.settimeout(1.0)
     anotar_escucha(ls)
     srv.log(f"[srv] escuchando en {ip}:{port}")

@@ -24,6 +24,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -597,6 +598,8 @@ type servidorLocal struct {
 	lnTor   net.Listener
 	py      *exec.Cmd
 	pyHecho chan struct{} // se cierra cuando run.py (el nuestro) termina
+	pyLog   string        // run-py-*.log (salida de run.py)
+	pyMuere string        // si el proceso nuestro ya no está: código + últimas líneas del log
 	cancel  context.CancelFunc
 	desde   time.Time
 
@@ -683,12 +686,35 @@ func (l *Lanzador) CrearServidor(ctx context.Context, o OpcServidor) error {
 			py.Env = append(py.Env, "YO2_PORT_OFFSET="+strconv.Itoa(o.Offset))
 		}
 		py.Env = append(py.Env, o.Env...)
+		py.Env = completarEntornoNode(py.Env)
+		if f, ok := salida.(*os.File); ok {
+			sv.pyLog = f.Name()
+		}
 		if err := py.Start(); err != nil {
 			aviso("No pude arrancar run.py: " + err.Error())
 		} else {
 			sv.py = py
 			sv.pyHecho = make(chan struct{})
-			go func() { py.Wait(); close(sv.pyHecho) }()
+			go func() {
+				err := py.Wait()
+				codigo := -1
+				if py.ProcessState != nil {
+					codigo = py.ProcessState.ExitCode()
+				}
+				detalle := colaLogRunPy(sv.pyLog)
+				msg := fmt.Sprintf("run.py se cerró (código %d)", codigo)
+				if err != nil && py.ProcessState == nil {
+					msg = "run.py se cerró: " + err.Error()
+				}
+				if detalle != "" {
+					msg += ": " + detalle
+				}
+				aviso(msg)
+				sv.mu.Lock()
+				sv.pyMuere = msg
+				sv.mu.Unlock()
+				close(sv.pyHecho)
+			}()
 		}
 	}
 
@@ -772,19 +798,56 @@ func (sv *servidorLocal) ponTor(ok bool, m Msg) {
 	sv.mu.Unlock()
 }
 
-// vigilarJuego: cada 10 s, ¿escucha run.py? y su estado (jugadores, duelos) para la ficha. La ficha se firma con lo
-// guardado aquí: pedir fichas nunca llega a run.py (no se puede usar para cargarlo).
+func colaLogRunPy(ruta string) string {
+	if ruta == "" {
+		return ""
+	}
+	b, err := os.ReadFile(ruta)
+	if err != nil || len(b) == 0 {
+		return ""
+	}
+	s := strings.ReplaceAll(string(b), "\r\n", "\n")
+	var last []string
+	for i := len(s) - 1; i >= 0 && len(last) < 3; {
+		j := strings.LastIndex(s[:i+1], "\n")
+		linea := strings.TrimSpace(s[j+1 : i+1])
+		if linea != "" {
+			last = append([]string{linea}, last...)
+		}
+		if j < 0 {
+			break
+		}
+		i = j - 1
+	}
+	t := strings.Join(last, " | ")
+	if len(t) > 300 {
+		t = "…" + t[len(t)-300:]
+	}
+	return t
+}
+
+// vigilarJuego: ¿escucha run.py? y su estado (jugadores, duelos) para la ficha. Hasta que abre el puerto se mira
+// cada segundo; después, cada 10 s. La ficha se firma con lo guardado aquí: pedir fichas nunca llega a run.py.
 func (sv *servidorLocal) vigilarJuego(ctx context.Context, gate string) {
+	espera := time.Second
 	for {
 		ok := Escucha(gate)
+		sv.mu.Lock()
+		sv.juegoOK = ok
+		sv.mu.Unlock()
 		d, err := sv.o.Estado.Leer(ctx)
 		sv.mu.Lock()
 		sv.juegoOK, sv.juego, sv.juegoErr = ok, d, err
 		sv.mu.Unlock()
+		if ok {
+			espera = 10 * time.Second
+		} else {
+			espera = time.Second
+		}
 		select {
 		case <-ctx.Done():
 			return
-		case <-time.After(10 * time.Second):
+		case <-time.After(espera):
 		}
 	}
 }
@@ -875,6 +938,10 @@ func (l *Lanzador) EstadoServidor() EstadoServidor {
 	if !sv.juegoOK {
 		e.Juego = "run.py no escucha en el puerto " + strconv.Itoa(5730+sv.o.Offset)
 		e.JuegoM = M("msg.juego.no_escucha", e.Juego, "puerto", 5730+sv.o.Offset)
+		if sv.pyMuere != "" {
+			e.Juego = sv.pyMuere
+			e.JuegoM = M("msg.juego.runpy_cerrado", sv.pyMuere, "detalle", sv.pyMuere)
+		}
 	}
 	if sv.nodo != nil {
 		e.P2P += " (" + sv.nodo.Red() + ")"

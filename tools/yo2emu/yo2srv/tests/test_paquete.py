@@ -38,7 +38,23 @@ class Rutas(unittest.TestCase):
         self.assertEqual(rutas.packinfo({}), rutas.desde().packinfo)          # la fórmula de run.py (tienda)
         self.assertEqual(rutas.vendor({}), os.path.join(root, "_vendor"))
         self.assertEqual(rutas.duelcore({}), os.path.join(rutas.EMU, "duelcore", "duelcore.mts"))
-        self.assertEqual(rutas.node({}), shutil.which("node"))
+        which = shutil.which("node")
+        n = rutas.node({})
+        if which:
+            # PATH con node ≥ 18: igual que siempre. Si el del PATH es viejo, se prefiere nvm/Homebrew.
+            ver = rutas._version_node(which)
+            if ver is not None and ver >= rutas._NODE_MIN:
+                self.assertEqual(n, which)
+            else:
+                self.assertTrue(n)
+        else:
+            self.assertEqual(n, rutas._node_conocido())
+
+    def test_node_sin_which_usa_rutas_conocidas(self):
+        import unittest.mock
+        with unittest.mock.patch("shutil.which", return_value=None):
+            n = rutas.node({})
+        self.assertEqual(n, rutas._node_conocido())
 
     def test_variables(self):
         env = {"YO2_JUEGO_DATOS": r"C:\pq\juego", "YO2_VENDOR": r"C:\pq\_vendor", "YO2_DUELCORE": r"C:\pq\duelcore.mjs",
